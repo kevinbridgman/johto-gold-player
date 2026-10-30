@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "patches": [
+    {
+      "id": "johto-starters-rival",
+      "name": "Johto Custom Starters + Rival",
+      "version": "1.0",
+      "file": "patches/johto-starters-rival.ips",
+      "sha256": "5f2da3214741b847cab306849dd667bd25e55f8f2c31180459884da5132ee27f",
+      "baseSha1": "d8b8a3600a465308c9953dfa04f0081c05bdcb94",
+      "description": "Professor Elm offers Mareep, Houndour, or Larvitar instead of Cyndaquil, Totodile, or Chikorita. Rival battles use their corresponding evolution lines (Ampharos, Houndoom, Tyranitar), with custom move choices. The original world, story, graphics, and music remain intact.",
+      "notes": "Experimental. Rival dialogue and long-term save compatibility have not yet been fully verified."
+    }
+  ]
+}
