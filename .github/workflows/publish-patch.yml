@@ -1,0 +1,81 @@
+name: Build and publish Johto IPS patch
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'build-tools/**'
+      - '.github/workflows/publish-patch.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: publish-patch
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential bison flex libpng-dev pkg-config git curl
+      - name: Install RGBDS 1.0.4
+        run: |
+          git clone --depth 1 --branch v1.0.4 https://github.com/gbdev/rgbds.git /tmp/rgbds
+          make -C /tmp/rgbds -j"$(nproc)"
+          sudo make -C /tmp/rgbds install
+      - name: Fetch Pokémon Gold disassembly
+        run: git clone --depth 1 https://github.com/pret/pokegold.git /tmp/pokegold
+      - name: Build baseline and record fingerprint
+        run: |
+          make -C /tmp/pokegold gold -j"$(nproc)"
+          cp /tmp/pokegold/pokegold.gbc /tmp/johto-original.gbc
+      - name: Apply source changes
+        run: |
+          python3 build-tools/patch_starters.py /tmp/pokegold
+          python3 build-tools/patch_rival.py /tmp/pokegold
+      - name: Build modified ROM and generate IPS
+        run: |
+          make -C /tmp/pokegold gold -j"$(nproc)"
+          mkdir -p patches
+          python3 build-tools/make_ips.py /tmp/johto-original.gbc /tmp/pokegold/pokegold.gbc patches/johto-starters-rival.ips
+          test -s patches/johto-starters-rival.ips
+      - name: Write patch catalog (no ROM)
+        run: |
+          python3 - <<'PY'
+          import hashlib, json, pathlib
+          original = pathlib.Path('/tmp/johto-original.gbc').read_bytes()
+          patch = pathlib.Path('patches/johto-starters-rival.ips').read_bytes()
+          catalog = {
+            "schemaVersion": 1,
+            "patches": [{
+              "id": "johto-starters-rival",
+              "name": "Johto Custom Starters + Rival",
+              "version": "1.0",
+              "file": "patches/johto-starters-rival.ips",
+              "sha256": hashlib.sha256(patch).hexdigest(),
+              "baseSha1": hashlib.sha1(original).hexdigest(),
+              "description": "Professor Elm offers Mareep, Houndour, or Larvitar instead of Cyndaquil, Totodile, or Chikorita. Rival battles use their corresponding evolution lines (Ampharos, Houndoom, Tyranitar), with custom move choices. The original world, story, graphics, and music remain intact.",
+              "notes": "Experimental. Rival dialogue and long-term save compatibility have not yet been fully verified."
+            }]
+          }
+          pathlib.Path('patches/catalog.json').write_text(json.dumps(catalog, indent=2) + '\n')
+          print("Baseline SHA-1:", catalog["patches"][0]["baseSha1"])
+          PY
+      - name: Publish IPS and catalog to public repository
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add patches/catalog.json patches/johto-starters-rival.ips
+          if git diff --cached --quiet; then
+            echo "Patch already up-to-date"
+          else
+            git commit -m "Publish rebuilt Johto modification patch"
+            git push
+          fi
