@@ -11,7 +11,7 @@ h1{font-size:1.35rem;margin:0 0 8px}
 p{line-height:1.5;color:#becdc6}
 .panel{background:#21332c;padding:16px;border-radius:14px;margin:12px 0}
 label{display:block;font-weight:650;margin:12px 0 6px}
-input{display:block;width:100%;max-width:100%;box-sizing:border-box}
+input,select{display:block;width:100%;max-width:100%;box-sizing:border-box}select{background:#14221e;color:#f4f4e9;padding:12px;border:1px solid #789388;border-radius:10px;font:inherit}#patch-description{padding:12px;background:#14221e;border:1px solid #536a5e;border-radius:10px;margin-top:9px;font-size:.93rem;line-height:1.45}#patch-description strong{color:#f1df9b}#patch-description p{margin:7px 0 0}#patch-description small{display:block;margin-top:8px}
 button{border:0;border-radius:10px;padding:12px 17px;font-weight:700;background:#e7ca71;color:#18251f;cursor:pointer;width:100%;margin-top:14px}
 button:disabled{opacity:.4}
 small{color:#b8c8bf}
@@ -26,8 +26,17 @@ a{color:#e7ca71}
 <section id="setup" class="panel">
 <label for="rom">Your Pokémon Gold ROM (.gbc)</label>
 <input type="file" id="rom" accept=".gb,.gbc,application/octet-stream">
-<label for="ips">IPS modification (.ips), optional</label>
+<label for="patch-select">Game modification</label>
+<select id="patch-select">
+<option value="none">Original Pokémon Gold (no patch)</option>
+<option value="loading" disabled>Checking GitHub for patches…</option>
+<option value="manual">Choose a local IPS file…</option>
+</select>
+<div id="patch-description" role="status">Select a modification to see what it changes.</div>
+<div id="manual-patch" hidden>
+<label for="ips">Local IPS file (.ips)</label>
 <input type="file" id="ips" accept=".ips,application/octet-stream">
+</div>
 <button id="start">Start game</button>
 
 <small>Choose an IPS produced by the matching build. An IPS can corrupt an incompatible ROM revision; this page checks the original ROM's SHA-1 when a patch is selected.</small>
@@ -44,6 +53,53 @@ a{color:#e7ca71}
 const ROM_SHA1 = "d8b8a3600a465308c9953dfa04f0081c05bdcb94";
 const romInput=document.querySelector("#rom");
 const ipsInput=document.querySelector("#ips");
+const patchSelect=document.querySelector("#patch-select");
+const patchDescription=document.querySelector("#patch-description");
+const manualPatch=document.querySelector("#manual-patch");
+let publishedPatches=[];
+const localDescriptions={
+ none:"Play the original game without modifications.",
+ manual:"Apply an IPS file from your phone. Use a patch made for your exact ROM revision."
+};
+function displayPatch(){
+ const mode=patchSelect.value;
+ manualPatch.hidden=mode!=="manual";
+ if(mode==="none"||mode==="manual"){patchDescription.textContent=localDescriptions[mode];return;}
+ const item=publishedPatches.find(p=>p.id===mode);
+ if(!item){patchDescription.textContent="This patch is unavailable.";return;}
+ patchDescription.replaceChildren();
+ const title=document.createElement("strong");title.textContent=item.name+" · v"+item.version;
+ const desc=document.createElement("p");desc.textContent=item.description;
+ const note=document.createElement("small");note.textContent=item.notes||"";
+ patchDescription.append(title,desc,note);
+}
+patchSelect.addEventListener("change",displayPatch);
+async function refreshPatches(){
+ try{
+  const response=await fetch("./patches/catalog.json",{cache:"no-store"});
+  if(!response.ok)throw Error("Catalog not yet published (HTTP "+response.status+")");
+  const catalog=await response.json();
+  if(catalog.schemaVersion!==1||!Array.isArray(catalog.patches))throw Error("Unknown catalog format");
+  publishedPatches=catalog.patches.filter(p=>p.id&&p.file&&p.name&&p.baseSha1&&p.sha256);
+  patchSelect.replaceChildren();
+  const add=(value,label)=>{const option=document.createElement("option");option.value=value;option.textContent=label;patchSelect.append(option);};
+  if(publishedPatches.length){
+   for(const p of publishedPatches)add(p.id,p.name+" (v"+p.version+")");
+  }
+  add("none","Original Pokémon Gold (no patch)");
+  add("manual","Choose a local IPS file…");
+  patchSelect.value=publishedPatches.length?publishedPatches[0].id:"none";
+  displayPatch();
+ }catch(error){
+  patchSelect.replaceChildren();
+  for(const [value,label] of [["none","Original Pokémon Gold (no patch)"],["manual","Choose a local IPS file…"]]){
+   const option=document.createElement("option");option.value=value;option.textContent=label;patchSelect.append(option);
+  }
+  patchSelect.value="none";
+  patchDescription.textContent="Published patches aren't available yet. You can play unmodified or choose a local IPS. ("+error.message+")";
+ }
+}
+refreshPatches();
 const status=document.querySelector("#status");
 const start=document.querySelector("#start");
 function hex(bytes){return Array.from(bytes,x=>x.toString(16).padStart(2,"0")).join("")}
@@ -83,10 +139,28 @@ start.addEventListener("click",async()=>{
   if(rom.byteLength<0x150 || rom.byteLength%0x4000!==0)throw Error("Invalid ROM size: select a .gbc file, not a ZIP.");
   const signature=await sha1(rom);
   let bytes=new Uint8Array(rom);
-  if(ipsInput.files.length){
-    if(signature!==ROM_SHA1)throw Error("This ROM differs from the reference Pokémon Gold (UE) revision. Its SHA-1 is "+signature+". Refusing to apply the patch.");
+  const choice=patchSelect.value;
+  if(choice==="manual"){
+    if(!ipsInput.files.length)throw Error("Choose a local IPS file.");
+    if(signature!==ROM_SHA1)throw Error("This ROM doesn't match the reference Gold ROM. SHA-1: "+signature+". No patch applied.");
     bytes=ipsPatch(rom,await ipsInput.files[0].arrayBuffer());
-    status.textContent="Patch applied in your browser. Starting emulator…";
+    status.textContent="Local IPS applied. Starting game…";
+  }else if(choice!=="none"){
+    const selected=publishedPatches.find(p=>p.id===choice);
+    if(!selected)throw Error("Selected patch is unavailable.");
+    if(signature.toLowerCase()!==selected.baseSha1.toLowerCase()){
+      throw Error("This patch needs a different original ROM revision. Your ROM SHA-1: "+signature+"; required: "+selected.baseSha1+". You can still choose 'Original Pokémon Gold' to play without a patch.");
+    }
+    status.textContent="Downloading "+selected.name+" from GitHub Pages…";
+    const patchUrl=new URL(selected.file,location.href);
+    if(patchUrl.origin!==location.origin)throw Error("Unsafe patch URL");
+    const response=await fetch(patchUrl.href,{cache:"no-store"});
+    if(!response.ok)throw Error("Patch download failed (HTTP "+response.status+").");
+    const binary=await response.arrayBuffer();
+    const sha=hex(new Uint8Array(await crypto.subtle.digest("SHA-256",binary)));
+    if(sha!==selected.sha256.toLowerCase())throw Error("Downloaded IPS checksum mismatch. Please reload the page.");
+    bytes=ipsPatch(rom,binary);
+    status.textContent="Applied "+selected.name+". Starting emulator…";
   }else{status.textContent="Starting unmodified ROM in emulator…";}
   const url=URL.createObjectURL(new Blob([bytes],{type:"application/octet-stream"}));
   window.EJS_player="#game";
