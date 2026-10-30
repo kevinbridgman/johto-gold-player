@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Johto Gold Mod — Local Browser Player</title>
+<style>
+:root{color-scheme:dark;font-family:system-ui,-apple-system,sans-serif}
+body{margin:0;background:#14221e;color:#f4f4e9}
+main{max-width:620px;margin:auto;padding:18px}
+h1{font-size:1.35rem;margin:0 0 8px}
+p{line-height:1.5;color:#becdc6}
+.panel{background:#21332c;padding:16px;border-radius:14px;margin:12px 0}
+label{display:block;font-weight:650;margin:12px 0 6px}
+input{display:block;width:100%;max-width:100%;box-sizing:border-box}
+button{border:0;border-radius:10px;padding:12px 17px;font-weight:700;background:#e7ca71;color:#18251f;cursor:pointer;width:100%;margin-top:14px}
+button:disabled{opacity:.4}
+small{color:#b8c8bf}
+#status{white-space:pre-wrap;overflow-wrap:anywhere;color:#d7dfd8}
+#game{width:100%;min-height:340px;background:#0d1714;border-radius:12px;overflow:hidden}
+a{color:#e7ca71}
+</style>
+</head>
+<body><main>
+<h1>Johto Gold Mod</h1>
+<p>Run your own Pokémon Gold ROM locally in your browser. Optionally apply the project's IPS modification before starting the emulator. Your ROM is not uploaded by this page.</p>
+<section id="setup" class="panel">
+<label for="rom">Your Pokémon Gold ROM (.gbc)</label>
+<input type="file" id="rom" accept=".gb,.gbc,application/octet-stream">
+<label for="ips">IPS modification (.ips), optional</label>
+<input type="file" id="ips" accept=".ips,application/octet-stream">
+<button id="start">Start game</button>
+<p id="status" role="status" aria-live="polite">Choose a ROM to begin.</p>
+<small>Choose an IPS produced by the matching build. An IPS can corrupt an incompatible ROM revision; this page checks the original ROM's SHA-1 when a patch is selected.</small>
+</section>
+<section id="play" hidden>
+<div id="game"></div>
+<button id="reload" type="button">Choose another ROM / restart</button>
+</section>
+<p><small>Emulation is provided by <a href="https://emulatorjs.org/" target="_blank" rel="noreferrer">EmulatorJS</a>, loaded from its official CDN. The emulator is not bundled here and initially requires internet. Save data may be stored by the emulator in your browser; do not rely on it without backups. The ROM is read locally, and never sent to our server by this page.</small></p>
+</main>
+<script>
+"use strict";
+const ROM_SHA1 = "d8b8a3600a465308c9953dfa04f0081c05bdcb94";
+const romInput=document.querySelector("#rom");
+const ipsInput=document.querySelector("#ips");
+const status=document.querySelector("#status");
+const start=document.querySelector("#start");
+function hex(bytes){return Array.from(bytes,x=>x.toString(16).padStart(2,"0")).join("")}
+async function sha1(buffer){return hex(new Uint8Array(await crypto.subtle.digest("SHA-1",buffer)))}
+function ipsPatch(rom,patch){
+  const u=new Uint8Array(rom),p=new Uint8Array(patch);
+  const decoder=new TextDecoder();
+  if(p.length<8||decoder.decode(p.subarray(0,5))!=="PATCH")throw Error("Not a valid IPS patch");
+  const out=Uint8Array.from(u);
+  let pos=5;
+  for(;;){
+    if(pos+3>p.length)throw Error("Truncated IPS record");
+    const ofs=p[pos]*65536+p[pos+1]*256+p[pos+2];pos+=3;
+    if(ofs===0x454f46)break;
+    if(pos+2>p.length)throw Error("Truncated IPS length");
+    const count=p[pos]*256+p[pos+1];pos+=2;
+    if(!count){
+      if(pos+3>p.length)throw Error("Truncated IPS RLE");
+      const length=p[pos]*256+p[pos+1],value=p[pos+2];pos+=3;
+      if(ofs+length>out.length)throw Error("Patch exceeds ROM length");
+      out.fill(value,ofs,ofs+length);
+    }else{
+      if(pos+count>p.length)throw Error("Truncated IPS data");
+      if(ofs+count>out.length)throw Error("Patch exceeds ROM length");
+      out.set(p.subarray(pos,pos+count),ofs);
+      pos+=count;
+    }
+  }
+  if(pos!==p.length)throw Error("Unexpected IPS trailing bytes");
+  return out;
+}
+start.addEventListener("click",async()=>{
+ start.disabled=true;
+ try{
+  if(!romInput.files.length)throw Error("Choose your own legally obtained Pokémon Gold ROM.");
+  const rom=await romInput.files[0].arrayBuffer();
+  const signature=await sha1(rom);
+  let bytes=new Uint8Array(rom);
+  if(ipsInput.files.length){
+    if(signature!==ROM_SHA1)throw Error("This ROM differs from the reference Pokémon Gold (UE) revision. Its SHA-1 is "+signature+". Refusing to apply the patch.");
+    bytes=ipsPatch(rom,await ipsInput.files[0].arrayBuffer());
+    status.textContent="Patch applied in your browser. Starting emulator…";
+  }else{status.textContent="Starting unmodified ROM in emulator…";}
+  const url=URL.createObjectURL(new Blob([bytes],{type:"application/octet-stream"}));
+  window.EJS_player="#game";
+  window.EJS_core="gb";
+  window.EJS_gameUrl=url;
+  window.EJS_pathtodata="https://cdn.emulatorjs.org/stable/data/";
+  window.EJS_gameName="Johto Gold Mod";
+  window.EJS_color="green";
+  const loader=document.createElement("script");
+  loader.src="https://cdn.emulatorjs.org/stable/data/loader.js";
+  loader.onerror=()=>{status.textContent="EmulatorJS couldn't load. Check internet access or content blockers.";document.querySelector("#setup").hidden=false};
+  document.querySelector("#setup").hidden=true;
+  document.querySelector("#play").hidden=false;
+  document.body.appendChild(loader);
+ }catch(e){status.textContent=e.message||String(e);start.disabled=false}
+});
+document.querySelector("#reload").addEventListener("click",()=>location.reload());
+</script></body></html>
