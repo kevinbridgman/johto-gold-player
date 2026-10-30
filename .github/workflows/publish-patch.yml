@@ -82,7 +82,17 @@ jobs:
             echo "Patch already up-to-date"
           else
             git commit -m "Publish rebuilt Johto modification patch"
-            git push
+            for attempt in 1 2 3 4; do
+              git fetch origin main
+              git rebase origin/main
+              if git push origin HEAD:main; then
+                break
+              fi
+              if [ "$attempt" = 4 ]; then
+                echo "Could not publish IPS after retries" >&2
+                exit 1
+              fi
+            done
           fi
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
