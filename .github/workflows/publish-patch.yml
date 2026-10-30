@@ -10,6 +10,8 @@ on:
 
 permissions:
   contents: write
+  pages: write
+  id-token: write
 
 concurrency:
   group: publish-patch
@@ -18,6 +20,9 @@ concurrency:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
@@ -79,3 +84,12 @@ jobs:
             git commit -m "Publish rebuilt Johto modification patch"
             git push
           fi
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+      - name: Upload static site and new patch
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+      - name: Deploy player and published patch
+        id: deployment
+        uses: actions/deploy-pages@v4
