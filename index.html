@@ -16,7 +16,7 @@ button{border:0;border-radius:10px;padding:12px 17px;font-weight:700;background:
 button:disabled{opacity:.4}
 small{color:#b8c8bf}
 #status{white-space:pre-wrap;overflow-wrap:anywhere;color:#d7dfd8}
-#game{width:100%;min-height:340px;background:#0d1714;border-radius:12px;overflow:hidden}
+#game{width:100%;height:70vh;min-height:380px;background:#0d1714;border-radius:12px;overflow:hidden}
 a{color:#e7ca71}
 </style>
 </head>
@@ -29,9 +29,10 @@ a{color:#e7ca71}
 <label for="ips">IPS modification (.ips), optional</label>
 <input type="file" id="ips" accept=".ips,application/octet-stream">
 <button id="start">Start game</button>
-<p id="status" role="status" aria-live="polite">Choose a ROM to begin.</p>
+
 <small>Choose an IPS produced by the matching build. An IPS can corrupt an incompatible ROM revision; this page checks the original ROM's SHA-1 when a patch is selected.</small>
 </section>
+<p id="status" role="status" aria-live="polite">Choose a ROM to begin.</p>
 <section id="play" hidden>
 <div id="game"></div>
 <button id="reload" type="button">Choose another ROM / restart</button>
@@ -79,6 +80,7 @@ start.addEventListener("click",async()=>{
  try{
   if(!romInput.files.length)throw Error("Choose your own legally obtained Pokémon Gold ROM.");
   const rom=await romInput.files[0].arrayBuffer();
+  if(rom.byteLength<0x150 || rom.byteLength%0x4000!==0)throw Error("Invalid ROM size: select a .gbc file, not a ZIP.");
   const signature=await sha1(rom);
   let bytes=new Uint8Array(rom);
   if(ipsInput.files.length){
@@ -92,7 +94,12 @@ start.addEventListener("click",async()=>{
   window.EJS_gameUrl=url;
   window.EJS_pathtodata="https://cdn.emulatorjs.org/stable/data/";
   window.EJS_gameName="Johto Gold Mod";
-  window.EJS_color="green";
+  window.EJS_color="#2b8a5e";
+  window.EJS_startOnLoaded=true;
+  window.EJS_forceLegacyCores=true;
+  window.EJS_browserMode="mobile";
+  window.EJS_ready=()=>{status.textContent="Emulator loaded. Starting game…";};
+  window.EJS_onGameStart=()=>{status.textContent="Game started. If screen stays black, open the site in Chrome instead of the in-app browser.";};
   const loader=document.createElement("script");
   loader.src="https://cdn.emulatorjs.org/stable/data/loader.js";
   loader.onerror=()=>{status.textContent="EmulatorJS couldn't load. Check internet access or content blockers.";document.querySelector("#setup").hidden=false};
@@ -101,5 +108,6 @@ start.addEventListener("click",async()=>{
   document.body.appendChild(loader);
  }catch(e){status.textContent=e.message||String(e);start.disabled=false}
 });
+window.addEventListener("error",e=>{status.textContent="Player error: "+(e.message||"Unknown error")+". Open in Chrome instead of the in-app browser.";});
 document.querySelector("#reload").addEventListener("click",()=>location.reload());
 </script></body></html>
