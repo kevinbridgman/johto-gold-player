@@ -2,6 +2,16 @@
   "schemaVersion": 1,
   "patches": [
     {
+      "id": "johto-starters-rival-v1.1",
+      "name": "Kanto + Johto Six Starters",
+      "version": "1.1",
+      "description": "Choose Bulbasaur, Charmander, Squirtle, Chikorita, Cyndaquil, or Totodile from a six-choice menu at any Pok\u00e9 Ball in Professor Elm's lab. Preview and confirm one level-5 partner holding a Berry. The rival uses the original Johto starter that counters your chosen type. Original world, story, graphics, and music remain.",
+      "notes": "Start a new game to choose a starter. B cancels the menu. Experimental: full playthrough and cross-version save compatibility are unverified. Keep existing saves on their original patch version.",
+      "file": "patches/johto-starters-rival-v1.1.ips",
+      "sha256": "b215687d61c7136ba118b319e4c1c7dcd3b9bda00d1d2ac32c39573f11beed29",
+      "baseSha1": "d8b8a3600a465308c9953dfa04f0081c05bdcb94"
+    },
+    {
       "id": "johto-starters-rival-v1.0",
       "name": "Johto Custom Starters + Rival",
       "version": "1.0",
