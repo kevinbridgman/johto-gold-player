@@ -47,8 +47,7 @@ jobs:
           cp /tmp/pokegold/pokegold.gbc /tmp/johto-original.gbc
       - name: Apply source changes
         run: |
-          python3 build-tools/patch_starters.py /tmp/pokegold
-          python3 build-tools/patch_rival.py /tmp/pokegold
+          python3 build-tools/patch_six_starters.py /tmp/pokegold
       - name: Build modified ROM and generate IPS
         run: |
           make -C /tmp/pokegold gold -j"$(nproc)"

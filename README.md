@@ -4,7 +4,14 @@ Browser player for Pokémon Gold using EmulatorJS, with optional versioned IPS m
 
 [Play in your browser](https://kevinbridgman.github.io/johto-gold-player/). Open in Chrome on Android, select your own compatible Gold ROM, choose a modification/version, and tap **Start game**. You can also play unmodified or select a local IPS. No game ROM is distributed; this page reads and patches your ROM in memory without uploading or changing the original file.
 
-## Available modification
+## Available modifications
+
+**Kanto + Johto Six Starters v1.1** is the newest release. Start a new game and interact with any of Elm's three Poké Balls to open a menu containing **Bulbasaur, Charmander, Squirtle, Chikorita, Cyndaquil, and Totodile**. Each choice has a picture, cry, and confirmation. B cancels; declining lets you inspect a different choice. You receive exactly one level-5 partner holding a Berry.
+
+The lab layout and story remain original. Gold's type-selection flags are preserved, and the rival retains the original Johto parties: Cyndaquil against Bulbasaur/Chikorita, Totodile against Charmander/Cyndaquil, Chikorita against Squirtle/Totodile. No additional rival species or custom moves are applied in v1.1. `build-tools/patch_six_starters.py` is the source transformation used by current publishing; the older scripts remain available for the previous release.
+
+Source-flow tests cover all six choices from each ball, cancel/decline, original story flags, and prevention of a second starter. Full emulator playthrough and cross-version save compatibility remain unverified. Keep existing saves on their original patch version.
+
 
 **Johto Custom Starters + Rival v1.0** replaces Chikorita's line with Larvitar/Pupitar/Tyranitar, Cyndaquil's with Mareep/Flaaffy/Ampharos, and Totodile's with Houndour/Houndoom. All 21 rival party variants use the corresponding replacements. The world, story, graphics, and music remain intact. Balance, dialogue, complete progression, and long-term save compatibility remain experimental.
 
