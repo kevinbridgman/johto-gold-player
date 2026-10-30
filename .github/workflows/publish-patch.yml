@@ -6,6 +6,8 @@ on:
     branches: [main]
     paths:
       - 'build-tools/**'
+      - 'release.json'
+      - 'tests/**'
       - '.github/workflows/publish-patch.yml'
 
 permissions:
@@ -26,6 +28,8 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
+      - name: Test release preservation
+        run: python3 -m unittest discover -s tests -v
       - name: Install build dependencies
         run: |
           sudo apt-get update
@@ -48,40 +52,19 @@ jobs:
       - name: Build modified ROM and generate IPS
         run: |
           make -C /tmp/pokegold gold -j"$(nproc)"
-          mkdir -p patches
-          python3 build-tools/make_ips.py /tmp/johto-original.gbc /tmp/pokegold/pokegold.gbc patches/johto-starters-rival.ips
-          test -s patches/johto-starters-rival.ips
-      - name: Write patch catalog (no ROM)
-        run: |
-          python3 - <<'PY'
-          import hashlib, json, pathlib
-          original = pathlib.Path('/tmp/johto-original.gbc').read_bytes()
-          patch = pathlib.Path('patches/johto-starters-rival.ips').read_bytes()
-          catalog = {
-            "schemaVersion": 1,
-            "patches": [{
-              "id": "johto-starters-rival",
-              "name": "Johto Custom Starters + Rival",
-              "version": "1.0",
-              "file": "patches/johto-starters-rival.ips",
-              "sha256": hashlib.sha256(patch).hexdigest(),
-              "baseSha1": hashlib.sha1(original).hexdigest(),
-              "description": "Professor Elm offers Mareep, Houndour, or Larvitar instead of Cyndaquil, Totodile, or Chikorita. Rival battles use their corresponding evolution lines (Ampharos, Houndoom, Tyranitar), with custom move choices. The original world, story, graphics, and music remain intact.",
-              "notes": "Experimental. Rival dialogue and long-term save compatibility have not yet been fully verified."
-            }]
-          }
-          pathlib.Path('patches/catalog.json').write_text(json.dumps(catalog, indent=2) + '\n')
-          print("Baseline SHA-1:", catalog["patches"][0]["baseSha1"])
-          PY
+          python3 build-tools/make_ips.py /tmp/johto-original.gbc /tmp/pokegold/pokegold.gbc /tmp/johto-release.ips
+          test -s /tmp/johto-release.ips
+      - name: Register immutable release (no ROM)
+        run: python3 build-tools/publish_release.py --baseline /tmp/johto-original.gbc --patch /tmp/johto-release.ips
       - name: Publish IPS and catalog to public repository
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add patches/catalog.json patches/johto-starters-rival.ips
+          git add patches/catalog.json patches/*-v*.ips
           if git diff --cached --quiet; then
             echo "Patch already up-to-date"
           else
-            git commit -m "Publish rebuilt Johto modification patch"
+            git commit -m "Publish new versioned Johto modification patch"
             for attempt in 1 2 3 4; do
               git fetch origin main
               git rebase origin/main
@@ -103,3 +86,4 @@ jobs:
       - name: Deploy player and published patch
         id: deployment
         uses: actions/deploy-pages@v4
+
