@@ -1,7 +1,7 @@
 {
   "id": "johto-starters-rival",
-  "name": "Kanto + Johto Six Starters",
-  "version": "1.1",
-  "description": "Choose Bulbasaur, Charmander, Squirtle, Chikorita, Cyndaquil, or Totodile from a six-choice menu at any Poké Ball in Professor Elm's lab. Preview and confirm one level-5 partner holding a Berry. The rival uses the original Johto starter that counters your chosen type. Original world, story, graphics, and music remain.",
-  "notes": "Start a new game to choose a starter. B cancels the menu. Experimental: full playthrough and cross-version save compatibility are unverified. Keep existing saves on their original patch version."
+  "name": "Collect All Six Starters",
+  "version": "1.2",
+  "description": "Choose your first Kanto or Johto starter as before, then return to Professor Elm for the other five. Receive each species only once; the menu shrinks after every successful gift. Elm offers another companion after his normal quest dialogue. Gifts are level 5 with a Berry, and only the first choice determines the rival's original Johto counter type.",
+  "notes": "Includes permanent claim tracking and migration for v1.1 cartridge saves using previously caught starter species. Back up your cartridge save before changing versions. Make room in your party for each gift. Cancel/decline and full parties preserve unclaimed gifts. Do not transfer numbered save states across versions; v1.0 upgrades and complete playthrough remain unverified."
 }
