@@ -44,6 +44,7 @@ a{color:#e7ca71}
 <p id="status" role="status" aria-live="polite">Choose a ROM to begin.</p>
 <section id="play" hidden>
 <div id="game"></div>
+<p><small>Keyboard: click the game, then hold <kbd>Space</kbd> for 2× speed. Release to return to normal.</small></p>
 <button id="reload" type="button">Choose another ROM / restart</button>
 </section>
 <p><small>Emulation is provided by <a href="https://emulatorjs.org/" target="_blank" rel="noreferrer">EmulatorJS</a>, loaded from its official CDN. The emulator is not bundled here and initially requires internet. Save data may be stored by the emulator in your browser; do not rely on it without backups. The ROM is read locally, and never sent to our server by this page.</small></p>
@@ -102,6 +103,38 @@ async function refreshPatches(){
 refreshPatches();
 const status=document.querySelector("#status");
 const start=document.querySelector("#start");
+let gameStarted=false;
+let spaceHeld=false;
+function releaseFastForward(){
+ if(!spaceHeld)return;
+ spaceHeld=false;
+ window.EJS_emulator?.gameManager?.toggleFastForward(0);
+}
+window.addEventListener("keydown",event=>{
+ if(event.code!=="Space"||!gameStarted)return;
+ const target=event.target;
+ if(!document.querySelector("#game").contains(target)||
+    target.closest("input,textarea,select,button,a,[contenteditable]"))return;
+ // Reserve Space for this shortcut even when saved emulator controls differ.
+ event.preventDefault();
+ event.stopImmediatePropagation();
+ if(spaceHeld)return;
+ const manager=window.EJS_emulator?.gameManager;
+ if(!manager)return;
+ manager.setFastForwardRatio(2);
+ manager.toggleFastForward(1);
+ spaceHeld=true;
+},true);
+window.addEventListener("keyup",event=>{
+ if(event.code!=="Space"||!spaceHeld)return;
+ event.preventDefault();
+ event.stopImmediatePropagation();
+ releaseFastForward();
+},true);
+window.addEventListener("blur",releaseFastForward);
+document.addEventListener("visibilitychange",()=>{
+ if(document.hidden)releaseFastForward();
+});
 function hex(bytes){return Array.from(bytes,x=>x.toString(16).padStart(2,"0")).join("")}
 async function sha1(buffer){return hex(new Uint8Array(await crypto.subtle.digest("SHA-1",buffer)))}
 function ipsPatch(rom,patch){
@@ -173,7 +206,7 @@ start.addEventListener("click",async()=>{
   window.EJS_forceLegacyCores=true;
   window.EJS_browserMode="mobile";
   window.EJS_ready=()=>{status.textContent="Emulator loaded. Starting game…";};
-  window.EJS_onGameStart=()=>{status.textContent="Game started. If screen stays black, open the site in Chrome instead of the in-app browser.";};
+  window.EJS_onGameStart=()=>{gameStarted=true;status.textContent="Game started. If screen stays black, open the site in Chrome instead of the in-app browser.";};
   const loader=document.createElement("script");
   loader.src="https://cdn.emulatorjs.org/stable/data/loader.js";
   loader.onerror=()=>{status.textContent="EmulatorJS couldn't load. Check internet access or content blockers.";document.querySelector("#setup").hidden=false};
