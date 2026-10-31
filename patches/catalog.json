@@ -2,6 +2,16 @@
   "schemaVersion": 1,
   "patches": [
     {
+      "id": "johto-starters-rival-v1.2",
+      "name": "Collect All Six Starters",
+      "version": "1.2",
+      "description": "Choose your first Kanto or Johto starter as before, then return to Professor Elm for the other five. Receive each species only once; the menu shrinks after every successful gift. Elm offers another companion after his normal quest dialogue. Gifts are level 5 with a Berry, and only the first choice determines the rival's original Johto counter type.",
+      "notes": "Includes permanent claim tracking and migration for v1.1 cartridge saves using previously caught starter species. Back up your cartridge save before changing versions. Make room in your party for each gift. Cancel/decline and full parties preserve unclaimed gifts. Do not transfer numbered save states across versions; v1.0 upgrades and complete playthrough remain unverified.",
+      "file": "patches/johto-starters-rival-v1.2.ips",
+      "sha256": "909ee3252f2bb77d5f2644033378693dbeefb5db3e3cc012b818f05c55b5e57b",
+      "baseSha1": "d8b8a3600a465308c9953dfa04f0081c05bdcb94"
+    },
+    {
       "id": "johto-starters-rival-v1.1",
       "name": "Kanto + Johto Six Starters",
       "version": "1.1",
