@@ -58,3 +58,15 @@ The player resets the emulator's persisted fast-forward/slow-motion toggle modes
 Run speed regression checks with `node tests/test_player_speed.cjs`. These cover saved native modes, all nine targets, the delayed correction, quick taps, focus loss, settings/form guards, changing targets, and measured-rate reporting. No save-on-hide/unload behavior is introduced by this change.
 
 Browser validation with the stable EmulatorJS legacy Gambatte core and a locally compiled Gold ROM: the old control measured about 2× for both 2× and 10× requests. The updated actual Space-event path measured ~119.5, ~300.2, and ~542.7 emulated frames/second for 2×, 5×, and 10× targets; release returned to ~60.3 fps. The 10× target achieved roughly 9× in that run, so the live measured value is reported separately from the requested rate. Faster runs approached 600 fps; no device-independent 10× guarantee is made.
+
+## Save-state screenshot gallery
+
+Open **Player settings → Save states** after starting a game. Slots **1–9** show a screenshot and save time when occupied, or a black preview labeled **empty save state** when unused. Select a slot by clicking its preview, then use **Save** or **Load**. Load is disabled for empty slots. The emulator's numbered-slot setting stays synchronized; its default keys remain **1** to save, **2** to load, and **3** to cycle slots. The native Quick Save/Quick Load menu uses these same slots.
+
+A numbered save captures the emulator state and a native PNG screenshot, then stores both in one IndexedDB transaction. Failed writes or captures keep the previous saved state and thumbnail. These slots survive reopening this site in the same browser profile. Their namespace includes a fingerprint of the final ROM bytes and the legacy Gambatte core family, so changing a ROM or patch gives a separate gallery. They are local, with no uploads. Clearing browser site data removes them; state compatibility with future core versions is unverified.
+
+This is separate from Pokémon's normal cartridge SAVE and from importing/exporting a standalone state file. The old numbered quick saves were held only in the emulator's in-memory filesystem; already-lost states cannot be reconstructed. A thumbnail is captured when saving a numbered slot with the updated player. Starting the game loads the gallery; opening settings, hiding, and leaving the page do not create save states.
+
+Run `node tests/test_player_slots.cjs` for slot isolation, persistence through reopening a model, per-slot overwrite, image/state atomicity, failed captures/writes, concurrent operations, and invalid records. The player deployment runs these alongside the cartridge-save and Space-speed checks.
+
+Browser validation: created slots 1 and 2 with distinct native screenshots using actual stable EmulatorJS/Gambatte and a locally compiled Gold ROM; confirmed seven black empty previews, native slot cycling, screenshot/state persistence after fully closing and reopening Chromium, and successful loading of slot 1 through the gallery.

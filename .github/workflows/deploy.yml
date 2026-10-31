@@ -5,6 +5,9 @@ on:
     branches: [main]
     paths:
       - 'index.html'
+      - 'save-slots.js'
+      - 'save-slots-ui.js'
+      - 'tests/test_player_slots.cjs'
       - 'tests/test_player_saves.cjs'
       - 'tests/test_player_speed.cjs'
       - '.github/workflows/deploy.yml'
@@ -32,6 +35,8 @@ jobs:
         run: node tests/test_player_saves.cjs
       - name: Test Space speed controls
         run: node tests/test_player_speed.cjs
+      - name: Test save-state slots
+        run: node tests/test_player_slots.cjs
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload player
