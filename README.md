@@ -51,7 +51,7 @@ Saves remain local to this site and browser profile. Clearing site data, private
 
 ## Space speed controls
 
-Use **Player settings → Space bar speed** to choose a target from 2× to 10×. Hold Space with the game focused; release it, move focus away, or hide the page to return to normal speed. Your browser remembers the target. The indicator beneath the game reports both the target and the measured emulated-frame rate while held. Measured speed depends on device/browser capacity and can fall below the target.
+Use **Player settings → Speed boost (Space / toggle)** to choose a target from 2× to 10×. Hold Space with the game focused; release it, move focus away, or hide the page to return to normal speed. Your browser remembers the target. The indicator beneath the game reports both the target and the measured emulated-frame rate while held. Measured speed depends on device/browser capacity and can fall below the target.
 
 The player resets the emulator's persisted fast-forward/slow-motion toggle modes at startup, hides the duplicate native speed settings, and ignores native speed hotkeys/gamepad inputs so they cannot conflict with Space. Other game and save controls remain available. The stable legacy core resets display scheduling on the frame after a speed toggle; Space applies its scheduler correction after that reset, then restores the normal vsync preference on release. Pending transitions are canceled on release and focus loss so they cannot re-enable speed afterward.
 
@@ -80,3 +80,11 @@ Automatic startup does not involve tapping the emulator's own start button, so t
 The native virtual-gamepad visibility setting is replaced by the player selector. Left-handed positioning and other native controls remain available. Cartridge-save, save-state, and no-save-on-hide/unload behavior are unchanged.
 
 Validation: Chromium with Android user agent, touch input, and a 390×844 viewport, deliberately seeded with legacy virtual-gamepad visibility disabled. Verified visible native controls after automatic startup and the delayed hide, closed startup menu, D-pad right press/release (input 7), Start (3), A (8), B (0), and the player Off/On toggle. Existing speed, cartridge-save, and numbered-state checks also passed.
+
+## Mobile speed toggle
+
+The **Speed boost: Off/On** button below the game uses the same remembered 2×–10× target as the keyboard Space shortcut. Tap once to keep speed boost on while using the touch D-pad/buttons, and tap again to return to normal. The button shows the selected multiplier and its current On/Off state; the measured-speed indicator remains below it.
+
+Change the multiplier in **Player settings → Speed boost (Space / toggle)**. Changing it while the toggle is on updates the active target. Space still works as a hold shortcut, and releasing Space does not cancel a separately latched boost. Hiding the page, switching apps, loading/saving a numbered state, or restarting resets speed boost to Off. Only the target multiplier is remembered; the On state is not restored after reopening. No save-on-hide/unload behavior is added.
+
+Mobile browser validation (390×844, Android user agent and touch): tapping the button enabled a latched 5× boost, remained active during a touch A-button press, and measured about 299.6 emulated fps. A second tap returned the button to Off and the game to normal speed. The toggle is visible directly below the game viewport.

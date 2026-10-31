@@ -33,6 +33,8 @@ a{color:#e7ca71}
 #game[data-touch-controls="off"] .ejs_virtualGamepad_parent{display:none!important}
 #game .b_speed_fast,#game .b_speed_slow{display:none!important}
 @media(max-height:500px) and (pointer:coarse){#game{height:85svh;min-height:0}}
+#speed-toggle{min-height:48px;touch-action:manipulation}
+#speed-toggle[aria-pressed="true"]{background:#8cdeb1;color:#10251a}
 </style>
 </head>
 <body><main>
@@ -65,7 +67,7 @@ a{color:#e7ca71}
 <option value="off">Off</option>
 </select>
 <p id="touch-controls-help"><small>Show the on-screen D-pad, A, B, Start, and Select buttons.</small></p>
-<label for="space-speed">Space bar speed</label>
+<label for="space-speed">Speed boost (Space / toggle)</label>
 <select id="space-speed" aria-describedby="space-speed-help">
 <option value="2">2×</option>
 <option value="3">3×</option>
@@ -77,7 +79,7 @@ a{color:#e7ca71}
 <option value="9">9×</option>
 <option value="10">10×</option>
 </select>
-<p id="space-speed-help"><small>Hold Space while the game is focused to use this speed. Release to return to normal. This is a target speed; the game shows the measured speed while Space is held. Higher speeds depend on your device.</small></p>
+<p id="space-speed-help"><small>Hold Space or turn on the Speed boost button below the game to use this speed. Release Space or turn the button off to return to normal. This is a target speed; the game shows the measured speed while Space is held. Higher speeds depend on your device.</small></p>
 <h2>Save states</h2>
 <p id="state-slots-message" role="status">Start a game to view its numbered save states. These are separate from Pokémon's normal SAVE.</p>
 <div id="state-slots" class="state-grid" aria-label="Numbered save-state slots"></div>
@@ -85,6 +87,7 @@ a{color:#e7ca71}
 <p id="status" role="status" aria-live="polite">Choose a ROM to begin.</p>
 <section id="play" hidden>
 <div id="game"></div>
+<button id="speed-toggle" type="button" aria-pressed="false" disabled>Speed boost: Off (2×)</button>
 <p id="speed-status">Normal speed (1×)</p>
 <p id="save-status" role="status" aria-live="polite">Preparing browser save storage…</p>
 <p><small>Keyboard: click the game, then hold <kbd>Space</kbd> for the speed selected in Player settings. Release to return to normal.</small></p>
@@ -194,6 +197,7 @@ function initializeTouchControls(){
 
 const spaceSpeedSelect=document.querySelector("#space-speed");
 const speedStatus=document.querySelector("#speed-status");
+const speedToggle=document.querySelector("#speed-toggle");
 const SPACE_SPEED_KEY="johto-gold-space-speed";
 function validSpaceSpeed(value){
  const speed=Number(value);
@@ -204,13 +208,20 @@ try{spaceSpeed=validSpaceSpeed(localStorage.getItem(SPACE_SPEED_KEY));}catch{}
 spaceSpeedSelect.value=String(spaceSpeed);
 let gameStarted=false;
 let spaceHeld=false;
+let speedToggled=false;
+function speedIsActive(){return spaceHeld||speedToggled;}
+function syncSpeedButton(){
+ speedToggle.setAttribute("aria-pressed",String(speedIsActive()));
+ speedToggle.textContent="Speed boost: "+(speedIsActive()?"On":"Off")+" ("+spaceSpeed+"×)";
+}
+function speedLabel(){return speedToggled?"Speed boost":"Space held";}
 let normalVSync=true;
 let speedMeter=null;
 let speedTransitionTimer=null;
 let speedSample=null;
 function sampleSpaceSpeed(){
  const manager=window.EJS_emulator?.gameManager;
- if(!spaceHeld||!manager)return;
+ if(!speedIsActive()||!manager)return;
  const now=performance.now(),frame=manager.getFrameNum();
  if(speedSample){
   // GB/GBC advances at 59.7275 emulated video frames per real second.
@@ -218,7 +229,7 @@ function sampleSpaceSpeed(){
   const frames=frame-speedSample.frame;
   if(elapsed>0&&frames>=0){
    const actual=frames*1000/elapsed/59.7275;
-   speedStatus.textContent="Space held: "+spaceSpeed+"× target · "+actual.toFixed(1)+"× measured";
+   speedStatus.textContent=speedLabel()+": "+spaceSpeed+"× target · "+actual.toFixed(1)+"× measured";
   }
  }
  speedSample={time:now,frame};
@@ -229,18 +240,18 @@ function applySpaceSpeed(){
  manager.toggleSlowMotion(0);
  manager.toggleFastForward(0);
  speedSample=null;
- speedStatus.textContent="Space held: "+spaceSpeed+"× target · measuring…";
+ speedStatus.textContent=speedLabel()+": "+spaceSpeed+"× target · measuring…";
  // Native flags are consumed on emulated frames. Allow the old mode to exit,
  // then apply the ratio before re-entering fast-forward.
  speedTransitionTimer=setTimeout(()=>{
-  if(!spaceHeld)return;
+  if(!speedIsActive())return;
   manager.setFastForwardRatio(spaceSpeed);
   manager.toggleFastForward(1);
   // The core resets its loop scheduler on the following frame. Disabling
   // vsync after that reset avoids the legacy ~2× display-refresh cap.
   speedTransitionTimer=setTimeout(()=>{
    speedTransitionTimer=null;
-   if(!spaceHeld)return;
+   if(!speedIsActive())return;
    manager.setVSync(false);
    speedSample=null;
    sampleSpaceSpeed();
@@ -249,7 +260,7 @@ function applySpaceSpeed(){
 }
 function initializeSpeedControls(){
  const emulator=window.EJS_emulator,manager=emulator.gameManager;
- // Retire old saved toggle modes; Space is the only speed-control authority.
+ // Retire native toggle modes; Space and the player button share one speed controller.
  emulator.isFastForward=false;
  emulator.isSlowMotion=false;
  emulator.changeSettingOption("fastForward","disabled");
@@ -264,17 +275,22 @@ function initializeSpeedControls(){
   if(index===27||index===29)return; // Ignore conflicting native speed hotkeys/gamepad inputs.
   return nativeInput(player,index,value);
  };
+ speedToggle.disabled=false;
+ syncSpeedButton();
  speedStatus.textContent="Normal speed (1×)";
 }
 spaceSpeedSelect.addEventListener("change",()=>{
  spaceSpeed=validSpaceSpeed(spaceSpeedSelect.value);
  spaceSpeedSelect.value=String(spaceSpeed);
  try{localStorage.setItem(SPACE_SPEED_KEY,String(spaceSpeed));}catch{}
- if(spaceHeld)applySpaceSpeed();
+ syncSpeedButton();
+ if(speedIsActive())applySpaceSpeed();
 });
 function releaseFastForward(){
- if(!spaceHeld)return;
+ if(!speedIsActive())return;
  spaceHeld=false;
+ speedToggled=false;
+ syncSpeedButton();
  clearTimeout(speedTransitionTimer);
  speedTransitionTimer=null;
  clearInterval(speedMeter);
@@ -288,6 +304,24 @@ function releaseFastForward(){
  }
  speedStatus.textContent="Normal speed (1×)";
 }
+function startSpeedBoost(){
+ applySpaceSpeed();
+ clearInterval(speedMeter);
+ speedMeter=setInterval(sampleSpaceSpeed,1000);
+}
+function releaseSpaceKey(){
+ if(!spaceHeld)return;
+ if(speedToggled){spaceHeld=false;return;}
+ releaseFastForward();
+}
+speedToggle.addEventListener("click",()=>{
+ if(!gameStarted)return;
+ if(speedIsActive()){releaseFastForward();return;}
+ speedToggled=true;
+ syncSpeedButton();
+ if(!spaceHeld)startSpeedBoost();
+});
+syncSpeedButton();
 window.addEventListener("keydown",event=>{
  if(event.code!=="Space"||!gameStarted)return;
  const target=event.target,emulator=window.EJS_emulator;
@@ -300,21 +334,21 @@ window.addEventListener("keydown",event=>{
  event.stopImmediatePropagation();
  if(spaceHeld||!emulator.gameManager)return;
  spaceHeld=true;
- applySpaceSpeed();
- speedMeter=setInterval(sampleSpaceSpeed,1000);
+ syncSpeedButton();
+ if(!speedToggled)startSpeedBoost();
 },true);
 window.addEventListener("keyup",event=>{
  if(event.code!=="Space"||!spaceHeld)return;
  event.preventDefault();
  event.stopImmediatePropagation();
- releaseFastForward();
+ releaseSpaceKey();
 },true);
 window.addEventListener("blur",releaseFastForward);
 window.addEventListener("pointerdown",event=>{
- if(spaceHeld&&!document.querySelector("#game").contains(event.target))releaseFastForward();
+ if(spaceHeld&&event.target!==speedToggle&&!document.querySelector("#game").contains(event.target))releaseSpaceKey();
 },true);
 document.addEventListener("focusout",event=>{
- if(spaceHeld&&!document.querySelector("#game").contains(event.relatedTarget))releaseFastForward();
+ if(spaceHeld&&event.relatedTarget!==speedToggle&&!document.querySelector("#game").contains(event.relatedTarget))releaseSpaceKey();
 });
 document.addEventListener("visibilitychange",()=>{
  if(document.hidden)releaseFastForward();
