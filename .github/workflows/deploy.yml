@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - 'index.html'
+      - 'tests/test_player_saves.cjs'
       - '.github/workflows/deploy.yml'
   workflow_dispatch:
 
@@ -26,6 +27,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Test cartridge save persistence
+        run: node tests/test_player_saves.cjs
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload player

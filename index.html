@@ -60,10 +60,11 @@ a{color:#e7ca71}
 <p id="status" role="status" aria-live="polite">Choose a ROM to begin.</p>
 <section id="play" hidden>
 <div id="game"></div>
+<p id="save-status" role="status" aria-live="polite">Preparing browser save storage…</p>
 <p><small>Keyboard: click the game, then hold <kbd>Space</kbd> for the speed selected in Player settings. Release to return to normal.</small></p>
 <button id="reload" type="button">Choose another ROM / restart</button>
 </section>
-<p><small>Emulation is provided by <a href="https://emulatorjs.org/" target="_blank" rel="noreferrer">EmulatorJS</a>, loaded from its official CDN. The emulator is not bundled here and initially requires internet. Save data may be stored by the emulator in your browser; do not rely on it without backups. The ROM is read locally, and never sent to our server by this page.</small></p>
+<p><small>Emulation is provided by <a href="https://emulatorjs.org/" target="_blank" rel="noreferrer">EmulatorJS</a>, loaded from its official CDN. The emulator is not bundled here and initially requires internet. Use Pokémon’s normal SAVE menu. Cartridge saves are copied to browser storage every second and when leaving the page. Reopen with the same ROM and patch in this browser. Clearing site data or using private browsing can remove saves; keep downloaded backups. The ROM is read locally, and never sent to our server by this page.</small></p>
 </main>
 <script>
 "use strict";
@@ -166,6 +167,53 @@ window.addEventListener("blur",releaseFastForward);
 document.addEventListener("visibilitychange",()=>{
  if(document.hidden)releaseFastForward();
 });
+
+// Flush cartridge SRAM promptly: the stable emulator otherwise defaults to 5 minutes.
+// Keep the existing gameName so previously persisted saves remain discoverable.
+const saveStatus=document.querySelector("#save-status");
+let batterySaveTimer=null;
+let batterySavePending=null;
+let lastBatterySave=null;
+function sameSave(a,b){
+ return a&&b&&a.length===b.length&&a.every((value,index)=>value===b[index]);
+}
+function flushBatterySave(force=false){
+ if(!gameStarted)return Promise.resolve(true);
+ if(batterySavePending)return force?batterySavePending.then(()=>flushBatterySave(true)):batterySavePending;
+ batterySavePending=(async()=>{
+  try{
+   const manager=window.EJS_emulator.gameManager;
+   manager.saveSaveFiles(); // Copy the emulated cartridge's current SRAM into its save file.
+   const data=manager.getSaveFile(false);
+   if(!data||!data.length)return true;
+   const snapshot=Uint8Array.from(data);
+   if(!force&&sameSave(snapshot,lastBatterySave))return true;
+   saveStatus.textContent="Storing game save in this browser…";
+   await new Promise((resolve,reject)=>{
+    manager.FS.syncfs(false,error=>error?reject(error):resolve());
+   });
+   lastBatterySave=snapshot;
+   saveStatus.textContent="Game save stored in this browser at "+new Date().toLocaleTimeString()+".";
+   return true;
+  }catch(error){
+   console.error("Cartridge save persistence failed",error);
+   saveStatus.textContent="Browser save failed. Keep the game open and download a save backup from the emulator menu.";
+   return false;
+  }
+ })().finally(()=>{batterySavePending=null;});
+ return batterySavePending;
+}
+function startBatterySavePersistence(){
+ clearInterval(batterySaveTimer);
+ void flushBatterySave(true);
+ batterySaveTimer=setInterval(()=>{void flushBatterySave();},1000);
+}
+document.addEventListener("visibilitychange",()=>{
+ if(document.hidden)void flushBatterySave(true);
+});
+window.addEventListener("pagehide",()=>{void flushBatterySave(true);});
+window.addEventListener("beforeunload",()=>{void flushBatterySave(true);});
+
 function hex(bytes){return Array.from(bytes,x=>x.toString(16).padStart(2,"0")).join("")}
 async function sha1(buffer){return hex(new Uint8Array(await crypto.subtle.digest("SHA-1",buffer)))}
 function ipsPatch(rom,patch){
@@ -237,7 +285,7 @@ start.addEventListener("click",async()=>{
   window.EJS_forceLegacyCores=true;
   window.EJS_browserMode="mobile";
   window.EJS_ready=()=>{status.textContent="Emulator loaded. Starting game…";};
-  window.EJS_onGameStart=()=>{gameStarted=true;status.textContent="Game started. If screen stays black, open the site in Chrome instead of the in-app browser.";};
+  window.EJS_onGameStart=()=>{gameStarted=true;startBatterySavePersistence();status.textContent="Game started. If screen stays black, open the site in Chrome instead of the in-app browser.";};
   const loader=document.createElement("script");
   loader.src="https://cdn.emulatorjs.org/stable/data/loader.js";
   loader.onerror=()=>{status.textContent="EmulatorJS couldn't load. Check internet access or content blockers.";document.querySelector("#setup").hidden=false};
@@ -247,5 +295,8 @@ start.addEventListener("click",async()=>{
  }catch(e){status.textContent=e.message||String(e);start.disabled=false}
 });
 window.addEventListener("error",e=>{status.textContent="Player error: "+(e.message||"Unknown error")+". Open in Chrome instead of the in-app browser.";});
-document.querySelector("#reload").addEventListener("click",()=>location.reload());
+document.querySelector("#reload").addEventListener("click",async()=>{
+ releaseFastForward();
+ if(await flushBatterySave(true))location.reload();
+});
 </script></body></html>
