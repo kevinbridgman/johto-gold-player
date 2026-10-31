@@ -64,7 +64,7 @@ a{color:#e7ca71}
 <p><small>Keyboard: click the game, then hold <kbd>Space</kbd> for the speed selected in Player settings. Release to return to normal.</small></p>
 <button id="reload" type="button">Choose another ROM / restart</button>
 </section>
-<p><small>Emulation is provided by <a href="https://emulatorjs.org/" target="_blank" rel="noreferrer">EmulatorJS</a>, loaded from its official CDN. The emulator is not bundled here and initially requires internet. Use Pokémon’s normal SAVE menu. Cartridge saves are copied to browser storage every second and when leaving the page. Reopen with the same ROM and patch in this browser. Clearing site data or using private browsing can remove saves; keep downloaded backups. The ROM is read locally, and never sent to our server by this page.</small></p>
+<p><small>Emulation is provided by <a href="https://emulatorjs.org/" target="_blank" rel="noreferrer">EmulatorJS</a>, loaded from its official CDN. The emulator is not bundled here and initially requires internet. Use Pokémon’s normal SAVE menu. Cartridge saves are copied to browser storage every second while the page is visible. Reopen with the same ROM and patch in this browser. Clearing site data or using private browsing can remove saves; keep downloaded backups. The ROM is read locally, and never sent to our server by this page.</small></p>
 </main>
 <script>
 "use strict";
@@ -204,15 +204,19 @@ function flushBatterySave(force=false){
  return batterySavePending;
 }
 function startBatterySavePersistence(){
+ // Our visible-page timer owns persistence; stop the emulator's background timer.
+ clearInterval(window.EJS_emulator.saveSaveInterval);
+ window.EJS_emulator.saveSaveInterval=null;
  clearInterval(batterySaveTimer);
  void flushBatterySave(true);
- batterySaveTimer=setInterval(()=>{void flushBatterySave();},1000);
+ batterySaveTimer=setInterval(()=>{if(!document.hidden)void flushBatterySave();},1000);
 }
-document.addEventListener("visibilitychange",()=>{
- if(document.hidden)void flushBatterySave(true);
-});
-window.addEventListener("pagehide",()=>{void flushBatterySave(true);});
-window.addEventListener("beforeunload",()=>{void flushBatterySave(true);});
+// The stable CDN loader ignores EJS_disableAutoUnload. Stop its later
+// beforeunload listener from calling exit (which flushes SRAM and restarts).
+// This does not cancel navigation or show a leave-page prompt.
+window.addEventListener("beforeunload",event=>{
+ event.stopImmediatePropagation();
+},true);
 
 function hex(bytes){return Array.from(bytes,x=>x.toString(16).padStart(2,"0")).join("")}
 async function sha1(buffer){return hex(new Uint8Array(await crypto.subtle.digest("SHA-1",buffer)))}
@@ -283,6 +287,7 @@ start.addEventListener("click",async()=>{
   window.EJS_color="#2b8a5e";
   window.EJS_startOnLoaded=true;
   window.EJS_forceLegacyCores=true;
+  window.EJS_disableAutoUnload=true;
   window.EJS_browserMode="mobile";
   window.EJS_ready=()=>{status.textContent="Emulator loaded. Starting game…";};
   window.EJS_onGameStart=()=>{gameStarted=true;startBatterySavePersistence();status.textContent="Game started. If screen stays black, open the site in Chrome instead of the in-app browser.";};
@@ -295,8 +300,8 @@ start.addEventListener("click",async()=>{
  }catch(e){status.textContent=e.message||String(e);start.disabled=false}
 });
 window.addEventListener("error",e=>{status.textContent="Player error: "+(e.message||"Unknown error")+". Open in Chrome instead of the in-app browser.";});
-document.querySelector("#reload").addEventListener("click",async()=>{
+document.querySelector("#reload").addEventListener("click",()=>{
  releaseFastForward();
- if(await flushBatterySave(true))location.reload();
+ location.reload();
 });
 </script></body></html>

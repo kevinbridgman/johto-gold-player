@@ -42,13 +42,25 @@ test('forced final save waits for pending write then captures the latest SRAM',a
  assert.equal(t.pending.length,1);t.pending.shift()(null);assert.equal(await final,true);
  await t.flush();assert.equal(t.pending.length,0);
 });
-test('hidden tabs and periodic timer trigger flushes',async()=>{
+test('visible-page timer flushes; hiding and leaving never trigger saves',async()=>{
  const t=fixture();t.context.startBatterySavePersistence();
  t.pending.shift()(null);await new Promise(resolve=>setImmediate(resolve));
  t.setData(new Uint8Array([3]));t.events.timer();
  t.pending.shift()(null);await new Promise(resolve=>setImmediate(resolve));
- t.context.document.hidden=true;t.events.visibilitychange();
- assert.equal(t.pending.length,1);t.pending.shift()(null);
+ const before=t.copies;
+ t.context.document.hidden=true;
+ t.events.timer();
+ assert.equal(t.copies,before);
+ assert.equal(t.events.visibilitychange,undefined);
+ assert.equal(t.events.pagehide,undefined);
+ let stopped=false;
+ t.events.beforeunload({stopImmediatePropagation(){stopped=true}});
+ assert.equal(stopped,true);
+ assert.equal(t.copies,before);
+ assert.equal(t.pending.length,0);
+ t.context.document.hidden=false;
+ t.events.timer();
+ assert.equal(t.copies,before+1);
 });
 test('missing SRAM and a game that has not started do not report a saved game',async()=>{
  const t=fixture();t.context.gameStarted=false;
