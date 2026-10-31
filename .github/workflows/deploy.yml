@@ -6,6 +6,7 @@ on:
     paths:
       - 'index.html'
       - 'tests/test_player_saves.cjs'
+      - 'tests/test_player_speed.cjs'
       - '.github/workflows/deploy.yml'
   workflow_dispatch:
 
@@ -29,6 +30,8 @@ jobs:
         uses: actions/checkout@v4
       - name: Test cartridge save persistence
         run: node tests/test_player_saves.cjs
+      - name: Test Space speed controls
+        run: node tests/test_player_speed.cjs
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload player
