@@ -48,11 +48,17 @@ jobs:
       - name: Apply source changes
         run: |
           python3 build-tools/patch_six_starters.py /tmp/pokegold
+          python3 build-tools/patch_exp_modifier.py /tmp/pokegold
       - name: Build modified ROM and generate IPS
         run: |
           make -C /tmp/pokegold gold -j"$(nproc)"
           python3 build-tools/make_ips.py /tmp/johto-original.gbc /tmp/pokegold/pokegold.gbc /tmp/johto-release.ips
           test -s /tmp/johto-release.ips
+      - name: Validate compiled experience option and awards
+        run: |
+          python3 -m venv /tmp/exp-validation
+          /tmp/exp-validation/bin/pip install pyboy==2.9.0
+          /tmp/exp-validation/bin/python build-tools/validate_exp_modifier.py /tmp/pokegold/pokegold.gbc
       - name: Register immutable release (no ROM)
         run: python3 build-tools/publish_release.py --baseline /tmp/johto-original.gbc --patch /tmp/johto-release.ips
       - name: Publish IPS and catalog to public repository
