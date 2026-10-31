@@ -29,6 +29,10 @@ a{color:#e7ca71}
 .state-slot>small{display:block;min-height:2.5em;font-size:.7rem;margin-top:7px}
 .slot-actions{display:flex;gap:6px}.slot-actions button{margin-top:6px;padding:8px 4px}
 @media(max-width:420px){.state-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+#game[data-touch-controls="on"][data-game-started="true"] .ejs_virtualGamepad_parent{display:block!important;opacity:1!important}
+#game[data-touch-controls="off"] .ejs_virtualGamepad_parent{display:none!important}
+#game .b_speed_fast,#game .b_speed_slow{display:none!important}
+@media(max-height:500px) and (pointer:coarse){#game{height:85svh;min-height:0}}
 </style>
 </head>
 <body><main>
@@ -54,6 +58,13 @@ a{color:#e7ca71}
 </section>
 <details class="panel" id="player-settings">
 <summary>Player settings</summary>
+<label for="touch-controls">Touch controls</label>
+<select id="touch-controls" aria-describedby="touch-controls-help">
+<option value="auto">Auto (show on touch devices)</option>
+<option value="on">On</option>
+<option value="off">Off</option>
+</select>
+<p id="touch-controls-help"><small>Show the on-screen D-pad, A, B, Start, and Select buttons.</small></p>
 <label for="space-speed">Space bar speed</label>
 <select id="space-speed" aria-describedby="space-speed-help">
 <option value="2">2×</option>
@@ -141,6 +152,46 @@ const slotGallery=new JohtoSlotGallery({
  grid:document.querySelector("#state-slots"),message:document.querySelector("#state-slots-message"),
  releaseSpeed:()=>releaseFastForward()
 });
+// Touch controller visibility is owned by the player, including automatic startup.
+const touchControlsSelect=document.querySelector("#touch-controls");
+const TOUCH_CONTROLS_KEY="johto-gold-touch-controls";
+function validTouchMode(value){return ["auto","on","off"].includes(value)?value:"auto";}
+let touchMode="auto";
+try{touchMode=validTouchMode(localStorage.getItem(TOUCH_CONTROLS_KEY));}catch{}
+touchControlsSelect.value=touchMode;
+function isTouchDevice(){
+ return navigator.maxTouchPoints>0||
+  !!window.matchMedia?.("(any-pointer: coarse)").matches||
+  window.EJS_emulator?.isMobile===true;
+}
+function wantTouchControls(){return touchMode==="on"||(touchMode==="auto"&&isTouchDevice());}
+function applyTouchControls(){
+ const show=wantTouchControls(),game=document.querySelector("#game"),emulator=window.EJS_emulator;
+ game.dataset.touchControls=show?"on":"off";
+ if(emulator?.virtualGamepad){
+  emulator.touch=show;
+  emulator.changeSettingOption?.("virtual-gamepad",show?"enabled":"disabled");
+  emulator.toggleVirtualGamepad(show);
+  if(gameStarted&&show)emulator.handleResize();
+  if(gameStarted){try{emulator.saveSettings();}catch{}}
+ }
+ return show;
+}
+touchControlsSelect.addEventListener("change",()=>{
+ touchMode=validTouchMode(touchControlsSelect.value);
+ touchControlsSelect.value=touchMode;
+ try{localStorage.setItem(TOUCH_CONTROLS_KEY,touchMode);}catch{}
+ applyTouchControls();
+});
+function initializeTouchControls(){
+ const game=document.querySelector("#game");
+ game.dataset.gameStarted="true";
+ if(applyTouchControls()&&isTouchDevice()){
+  window.EJS_emulator.menu?.close();
+  game.scrollIntoView({block:"start"});
+ }
+}
+
 const spaceSpeedSelect=document.querySelector("#space-speed");
 const speedStatus=document.querySelector("#speed-status");
 const SPACE_SPEED_KEY="johto-gold-space-speed";
@@ -269,6 +320,7 @@ document.addEventListener("visibilitychange",()=>{
  if(document.hidden)releaseFastForward();
 });
 
+
 // Flush cartridge SRAM promptly: the stable emulator otherwise defaults to 5 minutes.
 // Keep the existing gameName so previously persisted saves remain discoverable.
 const saveStatus=document.querySelector("#save-status");
@@ -390,10 +442,10 @@ start.addEventListener("click",async()=>{
   window.EJS_startOnLoaded=true;
   window.EJS_forceLegacyCores=true;
   window.EJS_disableAutoUnload=true;
-  window.EJS_browserMode="mobile";
-  window.EJS_hideSettings=["fastForward","slowMotion","ff-ratio","sm-ratio"];
-  window.EJS_ready=()=>{status.textContent="Emulator loaded. Starting game…";};
-  window.EJS_onGameStart=()=>{gameStarted=true;initializeSpeedControls();startBatterySavePersistence();void slotGallery.start(stateGameKey,window.EJS_emulator);status.textContent="Game started. If screen stays black, open the site in Chrome instead of the in-app browser.";};
+  window.EJS_defaultOptions={"virtual-gamepad":wantTouchControls()?"enabled":"disabled"};
+  window.EJS_hideSettings=["fastForward","slowMotion","ff-ratio","sm-ratio","virtual-gamepad"];
+  window.EJS_ready=()=>{applyTouchControls();status.textContent="Emulator loaded. Starting game…";};
+  window.EJS_onGameStart=()=>{gameStarted=true;initializeSpeedControls();initializeTouchControls();startBatterySavePersistence();void slotGallery.start(stateGameKey,window.EJS_emulator);status.textContent="Game started. If screen stays black, open the site in Chrome instead of the in-app browser.";};
   const loader=document.createElement("script");
   loader.src="https://cdn.emulatorjs.org/stable/data/loader.js";
   loader.onerror=()=>{status.textContent="EmulatorJS couldn't load. Check internet access or content blockers.";document.querySelector("#setup").hidden=false};

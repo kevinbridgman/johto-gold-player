@@ -70,3 +70,13 @@ This is separate from Pokémon's normal cartridge SAVE and from importing/export
 Run `node tests/test_player_slots.cjs` for slot isolation, persistence through reopening a model, per-slot overwrite, image/state atomicity, failed captures/writes, concurrent operations, and invalid records. The player deployment runs these alongside the cartridge-save and Space-speed checks.
 
 Browser validation: created slots 1 and 2 with distinct native screenshots using actual stable EmulatorJS/Gambatte and a locally compiled Gold ROM; confirmed seven black empty previews, native slot cycling, screenshot/state persistence after fully closing and reopening Chromium, and successful loading of slot 1 through the gallery.
+
+## Mobile touch controls
+
+Touch controls default to **Auto** in **Player settings → Touch controls**. Auto enables the on-screen D-pad, A, B, Start, and Select when touch hardware, a coarse pointer, or the emulator's mobile detection is present. Select **On** to force them visible or **Off** to hide them. This preference is stored separately from legacy emulator settings.
+
+Automatic startup does not involve tapping the emulator's own start button, so the stable emulator can leave its internal touch flag false. Its resize workaround can also schedule a delayed hide after startup. The player now sets the touch state at ready/start, overrides stale native visibility settings, and keeps the controller visible through that delayed hide. On touch devices it closes the startup menu so the menu does not cover the controls, and scrolls the game into view. Short landscape viewports get a bounded game height. Native Fast/Slow buttons are hidden because those conflicting speed inputs are disabled; keyboard Space speed controls remain unchanged.
+
+The native virtual-gamepad visibility setting is replaced by the player selector. Left-handed positioning and other native controls remain available. Cartridge-save, save-state, and no-save-on-hide/unload behavior are unchanged.
+
+Validation: Chromium with Android user agent, touch input, and a 390×844 viewport, deliberately seeded with legacy virtual-gamepad visibility disabled. Verified visible native controls after automatic startup and the delayed hide, closed startup menu, D-pad right press/release (input 7), Start (3), A (8), B (0), and the player Off/On toggle. Existing speed, cartridge-save, and numbered-state checks also passed.
