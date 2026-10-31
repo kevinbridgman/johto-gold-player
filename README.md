@@ -88,3 +88,9 @@ The **Speed boost: Off/On** button below the game uses the same remembered 2×�
 Change the multiplier in **Player settings → Speed boost (Space / toggle)**. Changing it while the toggle is on updates the active target. Space still works as a hold shortcut, and releasing Space does not cancel a separately latched boost. Hiding the page, switching apps, loading/saving a numbered state, or restarting resets speed boost to Off. Only the target multiplier is remembered; the On state is not restored after reopening. No save-on-hide/unload behavior is added.
 
 Mobile browser validation (390×844, Android user agent and touch): tapping the button enabled a latched 5× boost, remained active during a touch A-button press, and measured about 299.6 emulated fps. A second tap returned the button to Off and the game to normal speed. The toggle is visible directly below the game viewport.
+
+## Keep the game in place
+
+Held arrow keys are prevented from scrolling the page while the game has keyboard focus, including repeated keydown events that the stable emulator skips. Input still reaches the emulator. Outside the game, and in settings/form controls, browser navigation remains available. Touch gestures on the canvas and virtual controls stay with the game instead of panning the page; the surrounding page remains scrollable.
+
+Browser validation with stable EmulatorJS/Gambatte reproduced 190 pixels of page scrolling while holding Down before this fix. The same held input after the fix kept the document position unchanged and delivered both direction press and release to the core. A real touchscreen drag through Chromium's input protocol also kept the document in place; arrow navigation outside the game still scrolled normally. Existing save, speed, numbered-state, and touch checks passed.

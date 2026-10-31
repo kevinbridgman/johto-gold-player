@@ -35,6 +35,7 @@ a{color:#e7ca71}
 @media(max-height:500px) and (pointer:coarse){#game{height:85svh;min-height:0}}
 #speed-toggle{min-height:48px;touch-action:manipulation}
 #speed-toggle[aria-pressed="true"]{background:#8cdeb1;color:#10251a}
+#game canvas,#game .ejs_virtualGamepad_parent{touch-action:none;overscroll-behavior:contain}
 </style>
 </head>
 <body><main>
@@ -155,6 +156,17 @@ const slotGallery=new JohtoSlotGallery({
  grid:document.querySelector("#state-slots"),message:document.querySelector("#state-slots-message"),
  releaseSpeed:()=>releaseFastForward()
 });
+// Native keyChange returns early for repeats, leaving held arrows free to scroll.
+// Cancel the browser default without interrupting the emulator's input handling.
+window.addEventListener("keydown",event=>{
+ if(!gameStarted||!['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(event.key))return;
+ const target=event.target,emulator=window.EJS_emulator;
+ if(!document.querySelector("#game").contains(target)||
+    target.closest('input,textarea,select,button,a,[contenteditable]')||
+    emulator?.paused||emulator?.isSettingsMenuOpen?.()||emulator?.isPopupOpen?.())return;
+ event.preventDefault();
+},true);
+
 // Touch controller visibility is owned by the player, including automatic startup.
 const touchControlsSelect=document.querySelector("#touch-controls");
 const TOUCH_CONTROLS_KEY="johto-gold-touch-controls";
