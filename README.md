@@ -58,11 +58,22 @@ Validation: in Chromium with the actual stable EmulatorJS loader and legacy Gamb
 
 Saves remain local to this site and browser profile. Clearing site data, private browsing, or changing devices can remove or hide them. Download backups through the emulator menu. Quick save states are separate from cartridge saves. Save compatibility between patch versions remains unverified; resume with the same ROM and patch. The existing shared emulator save identity is retained in this fix; isolation between different games/patches remains a separate task. A save that the old player never wrote to storage cannot be recovered by this update.
 
+## Normal gameplay speed
+
+Use **Player settings → Normal gameplay speed** to choose **1×–10×** in whole-number steps. The default is **1×**. This target is remembered separately from the existing **Speed boost (Space / toggle)** target. For example, normal **2×** and boost **8×** runs at 2× until Space is held or the mobile toggle is switched on, then runs at an absolute 8×; release/switch off to return to 2×. Changing normal speed during a boost takes effect when the boost ends. The boost target, keyboard hold behavior, mobile latch, focus/hide reset, and native input guards remain unchanged.
+
+Normal speeds above 1× use the same native scheduler timing correction as the existing boost, and the status indicator reports target and measured speed. Hardware can limit the achieved rate. Switching normal speed back to 1× disables native fast-forward and restores the user's normal vsync preference. Normal speed is restored on startup; the boost On state is never remembered. No game-save or cloud behavior is added.
+
+The speed regression suite covers both targets independently, all normal values, default/invalid saved settings, keyboard/touch transitions, normal-setting changes during a boost, rapid taps, focus/hide release, and returning to 1×. Existing boost tests continue to run.
+
+
+Browser validation with stable EmulatorJS/legacy Gambatte: default ~60.3 fps; normal 2× ~119.0 fps; Space boost at an 8× target ~438.4 fps; release ~119.3 fps. The touch toggle reached ~457.7 fps, remained boosted while changing normal to 3×, then returned to ~178.8 fps when switched off. Reload remembered normal 3× and boost target 8× with boost Off; returning normal to 1× measured ~59.9 fps. Twenty speed regression tests pass; the existing boost activation function is unchanged.
+
 ## Space speed controls
 
-Use **Player settings → Speed boost (Space / toggle)** to choose a target from 2× to 10×. Hold Space with the game focused; release it, move focus away, or hide the page to return to normal speed. Your browser remembers the target. The indicator beneath the game reports both the target and the measured emulated-frame rate while held. Measured speed depends on device/browser capacity and can fall below the target.
+Use **Player settings → Speed boost (Space / toggle)** to choose a target from 2× to 10×. Hold Space with the game focused; release it, move focus away, or hide the page to return to the selected normal gameplay speed. Your browser remembers the target. The indicator beneath the game reports both the target and the measured emulated-frame rate while held. Measured speed depends on device/browser capacity and can fall below the target.
 
-The player resets the emulator's persisted fast-forward/slow-motion toggle modes at startup, hides the duplicate native speed settings, and ignores native speed hotkeys/gamepad inputs so they cannot conflict with Space. Other game and save controls remain available. The stable legacy core resets display scheduling on the frame after a speed toggle; Space applies its scheduler correction after that reset, then restores the normal vsync preference on release. Pending transitions are canceled on release and focus loss so they cannot re-enable speed afterward.
+The player resets the emulator's persisted fast-forward/slow-motion toggle modes at startup, hides the duplicate native speed settings, and ignores native speed hotkeys/gamepad inputs so they cannot conflict with Space. Other game and save controls remain available. The stable legacy core resets display scheduling on the frame after a speed toggle; Space applies its scheduler correction after that reset, then returns to the selected normal gameplay target on release (restoring the normal vsync preference at 1×). Pending transitions are canceled on release and focus loss so they cannot re-enable speed afterward.
 
 Run speed regression checks with `node tests/test_player_speed.cjs`. These cover saved native modes, all nine targets, the delayed correction, quick taps, focus loss, settings/form guards, changing targets, and measured-rate reporting. No save-on-hide/unload behavior is introduced by this change.
 

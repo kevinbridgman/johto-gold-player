@@ -68,6 +68,20 @@ a{color:#e7ca71}
 <option value="off">Off</option>
 </select>
 <p id="touch-controls-help"><small>Show the on-screen D-pad, A, B, Start, and Select buttons.</small></p>
+<label for="normal-speed">Normal gameplay speed</label>
+<select id="normal-speed" aria-describedby="normal-speed-help">
+<option value="1">1× (default)</option>
+<option value="2">2×</option>
+<option value="3">3×</option>
+<option value="4">4×</option>
+<option value="5">5×</option>
+<option value="6">6×</option>
+<option value="7">7×</option>
+<option value="8">8×</option>
+<option value="9">9×</option>
+<option value="10">10×</option>
+</select>
+<p id="normal-speed-help"><small>The speed used when boost is off. For example, choose 2× here and 8× below to play at 2× normally and 8× while boosting. Both speeds are remembered separately.</small></p>
 <label for="space-speed">Speed boost (Space / toggle)</label>
 <select id="space-speed" aria-describedby="space-speed-help">
 <option value="2">2×</option>
@@ -80,7 +94,7 @@ a{color:#e7ca71}
 <option value="9">9×</option>
 <option value="10">10×</option>
 </select>
-<p id="space-speed-help"><small>Hold Space or turn on the Speed boost button below the game to use this speed. Release Space or turn the button off to return to normal. This is a target speed; the game shows the measured speed while Space is held. Higher speeds depend on your device.</small></p>
+<p id="space-speed-help"><small>Hold Space or turn on the Speed boost button below the game to use this speed. Release Space or turn the button off to return to your normal gameplay speed. These are target speeds; the indicator below the game shows measured speed. Boost is an absolute speed, so 8× means 8× even when normal gameplay is set to 2×. Higher speeds depend on your device.</small></p>
 <h2>Save states</h2>
 <p id="state-slots-message" role="status">Start a game to view its numbered save states. These are separate from Pokémon's normal SAVE.</p>
 <div id="state-slots" class="state-grid" aria-label="Numbered save-state slots"></div>
@@ -208,6 +222,15 @@ function initializeTouchControls(){
 }
 
 const spaceSpeedSelect=document.querySelector("#space-speed");
+const normalSpeedSelect=document.querySelector("#normal-speed");
+const NORMAL_SPEED_KEY="johto-gold-normal-speed";
+function validNormalSpeed(value){
+ const speed=Number(value);
+ return Number.isInteger(speed)&&speed>=1&&speed<=10?speed:1;
+}
+let normalSpeed=1;
+try{normalSpeed=validNormalSpeed(localStorage.getItem(NORMAL_SPEED_KEY));}catch{}
+normalSpeedSelect.value=String(normalSpeed);
 const speedStatus=document.querySelector("#speed-status");
 const speedToggle=document.querySelector("#speed-toggle");
 const SPACE_SPEED_KEY="johto-gold-space-speed";
@@ -270,6 +293,55 @@ function applySpaceSpeed(){
   },80);
  },40);
 }
+function sampleNormalSpeed(){
+ const manager=window.EJS_emulator?.gameManager;
+ if(speedIsActive()||!gameStarted||!manager||normalSpeed===1)return;
+ const now=performance.now(),frame=manager.getFrameNum();
+ if(speedSample){
+  const elapsed=now-speedSample.time,frames=frame-speedSample.frame;
+  if(elapsed>0&&frames>=0){
+   const actual=frames*1000/elapsed/59.7275;
+   speedStatus.textContent="Normal speed: "+normalSpeed+"× target · "+actual.toFixed(1)+"× measured";
+  }
+ }
+ speedSample={time:now,frame};
+}
+function applyNormalSpeed(){
+ if(!gameStarted||speedIsActive())return;
+ clearTimeout(speedTransitionTimer);
+ speedTransitionTimer=null;
+ clearInterval(speedMeter);
+ speedMeter=null;
+ speedSample=null;
+ const manager=window.EJS_emulator.gameManager;
+ manager.toggleSlowMotion(0);
+ manager.toggleFastForward(0);
+ manager.setVSync(normalVSync);
+ if(normalSpeed===1){speedStatus.textContent="Normal speed (1×)";return;}
+ speedStatus.textContent="Normal speed: "+normalSpeed+"× target · measuring…";
+ // Use the same proven native scheduling delays for a faster normal pace.
+ // A boost cancels this transition and keeps its independent target/controls.
+ speedTransitionTimer=setTimeout(()=>{
+  if(speedIsActive())return;
+  manager.setFastForwardRatio(normalSpeed);
+  manager.toggleFastForward(1);
+  speedTransitionTimer=setTimeout(()=>{
+   speedTransitionTimer=null;
+   if(speedIsActive())return;
+   manager.setVSync(false);
+   speedSample=null;
+   sampleNormalSpeed();
+  },80);
+ },40);
+ speedMeter=setInterval(sampleNormalSpeed,1000);
+}
+normalSpeedSelect.addEventListener("change",()=>{
+ normalSpeed=validNormalSpeed(normalSpeedSelect.value);
+ normalSpeedSelect.value=String(normalSpeed);
+ try{localStorage.setItem(NORMAL_SPEED_KEY,String(normalSpeed));}catch{}
+ // Changing the normal target during a boost takes effect when boost ends.
+ if(!speedIsActive())applyNormalSpeed();
+});
 function initializeSpeedControls(){
  const emulator=window.EJS_emulator,manager=emulator.gameManager;
  // Retire native toggle modes; Space and the player button share one speed controller.
@@ -289,7 +361,7 @@ function initializeSpeedControls(){
  };
  speedToggle.disabled=false;
  syncSpeedButton();
- speedStatus.textContent="Normal speed (1×)";
+ applyNormalSpeed();
 }
 spaceSpeedSelect.addEventListener("change",()=>{
  spaceSpeed=validSpaceSpeed(spaceSpeedSelect.value);
@@ -314,7 +386,7 @@ function releaseFastForward(){
   manager.toggleFastForward(0);
   manager.setVSync(normalVSync);
  }
- speedStatus.textContent="Normal speed (1×)";
+ applyNormalSpeed();
 }
 function startSpeedBoost(){
  applySpaceSpeed();
@@ -506,3 +578,4 @@ document.querySelector("#reload").addEventListener("click",()=>{
  location.reload();
 });
 </script></body></html>
+
