@@ -2,6 +2,16 @@
   "schemaVersion": 1,
   "patches": [
     {
+      "id": "johto-starters-rival-v1.6",
+      "name": "New Bark Cave + Free TM/HM Shop",
+      "version": "1.6",
+      "description": "The cave's northwest shop now offers all 50 TMs and all seven HMs for \u00a50 from the left clerk. Choose TMs, then a group of ten, or choose HMs. The right clerk still offers free Potions, healing items and Pok\u00e9/Great/Ultra/Master Balls. Includes earlier cave, six-starter and EXP-option features.",
+      "notes": "Back up your normal cartridge save before upgrading. Use CONTINUE; older saves made inside the shop refresh both clerks' script references. Save layout, existing map IDs and cave position recovery are preserved. TMs remain single-use with unlimited free restocking; HMs are reusable and field use still requires badges. Normal bag limits apply; other marts keep normal prices. Numbered states remain specific to their exact ROM. Complete playthrough remains unverified.",
+      "file": "patches/johto-starters-rival-v1.6.ips",
+      "sha256": "8a00d124cd72167f13462d62a81104c85734ecd40100babba4903855c65ebf59",
+      "baseSha1": "d8b8a3600a465308c9953dfa04f0081c05bdcb94"
+    },
+    {
       "id": "johto-starters-rival-v1.5",
       "name": "New Bark Cave + Free Shop",
       "version": "1.5",
