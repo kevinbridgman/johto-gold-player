@@ -42,13 +42,20 @@ def raw(name,n):
 hms=raw('MartCaveHMs',9);gear=raw('MartCaveGear',12)
 assert hms==bytes([7,*range(0xf3,0xfa),255])
 assert gear[0]==10 and gear[-1]==255 and len(set(gear[1:-1]))==10
-for item in [*hms[1:-1],*gear[1:-1]]:
+tm_stock=[]
+if 'MartCaveTMs01' in sym:
+    for first in range(1,51,10):
+        page=raw(f'MartCaveTMs{first:02d}',12)
+        assert page[0]==10 and page[-1]==255
+        tm_stock.extend(page[1:-1])
+    assert tm_stock==[i for i in range(0xbf,0xf3) if i not in (0xc3,0xdc)], 'all 50 real TM IDs, skipping dummy items'
+for item in [*hms[1:-1],*gear[1:-1],*tm_stock]:
     write('wMapGroup',24);write('wMapNumber',15);write('wCurItem',item)
     call('GetItemPrice');assert (p.register_file.D,p.register_file.E)==(0,0)
 for group,number in [(24,14),(26,4)]:
     write('wMapGroup',group);write('wMapNumber',number);write('wCurItem',gear[1])
     call('GetItemPrice');assert p.register_file.D*256+p.register_file.E==300
-print('Compiled stock: all 7 HMs and 10 supplies cost zero here; ordinary prices remain elsewhere',flush=True)
+print(f'Compiled stock: 7 HMs, 10 supplies and {len(tm_stock)} TMs cost zero here; ordinary prices remain elsewhere',flush=True)
 # Old cave saves can be anywhere in the formerly empty room.
 for y in range(16):
  for x in range(20):
@@ -60,6 +67,10 @@ for y in range(16):
         assert read('wPlayerMapX')==7 and read('wPlayerMapY')==10
 write('wMapNumber',15);write('wXCoord',3);write('wYCoord',3);call('CaveShopSafeContinue')
 assert (read('wXCoord'),read('wYCoord'))==(3,3)
+if tm_stock:
+    for object_name,label in [('wMap2Object','CaveSupplyMartHMClerk'),('wMap3Object','CaveSupplyMartGearClerk')]:
+        addr=sym[object_name][1]+10
+        assert p.memory[addr]+256*p.memory[addr+1]==sym[label][1], 'saved clerk scripts refreshed'
 print('All 320 old cave save positions migrate safely; shop saves are not moved',flush=True)
 # Counter geometry: shoppers can reach both counters, but not the staff area.
 from collections import deque

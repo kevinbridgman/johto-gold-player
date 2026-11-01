@@ -1,7 +1,7 @@
 {
   "id": "johto-starters-rival",
-  "name": "New Bark Cave + Free Shop",
-  "version": "1.5",
-  "description": "A compact shop in the cave's northwest corner leaves room for future town buildings. Two clerks behind the counter offer all seven reusable HMs and free supplies: Potions, Full Restore, Revive, Full Heal, and Poké/Great/Ultra/Master Balls. Everything costs ¥0 with normal quantities and bag limits. Includes all earlier cave, starter and EXP-option features.",
-  "notes": "Back up your normal cartridge save before upgrading. Older cave saves in the new building footprint move safely to its front door; other positions and save layout are preserved. Field HMs still need their normal badges. Stock is unlimited; other marts keep normal prices. Saves inside this shop need v1.5+. Use CONTINUE, not a numbered state from another ROM. Complete playthrough remains unverified."
+  "name": "New Bark Cave + Free TM/HM Shop",
+  "version": "1.6",
+  "description": "The cave's northwest shop now offers all 50 TMs and all seven HMs for ¥0 from the left clerk. Choose TMs, then a group of ten, or choose HMs. The right clerk still offers free Potions, healing items and Poké/Great/Ultra/Master Balls. Includes earlier cave, six-starter and EXP-option features.",
+  "notes": "Back up your normal cartridge save before upgrading. Use CONTINUE; older saves made inside the shop refresh both clerks' script references. Save layout, existing map IDs and cave position recovery are preserved. TMs remain single-use with unlimited free restocking; HMs are reusable and field use still requires badges. Normal bag limits apply; other marts keep normal prices. Numbered states remain specific to their exact ROM. Complete playthrough remains unverified."
 }

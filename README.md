@@ -6,6 +6,12 @@ Browser player for Pokémon Gold using EmulatorJS, with optional versioned IPS m
 
 ## Available modifications
 
+**New Bark Cave + Free TM/HM Shop v1.6** adds **all 50 original Gold TMs** to the same left-hand clerk who supplies the seven HMs. Talk over his counter, choose **TMs**, then choose **TM01–10**, **TM11–20**, **TM21–30**, **TM31–40**, or **TM41–50**. Choose **HMs** for the original HM stock. Every machine costs **¥0**, with unlimited restocking and normal quantity/bag limits. TMs retain their original single-use behavior; HMs remain reusable with the original field badge requirements. The right-hand supplies clerk, shop building and cave layout remain unchanged.
+
+Use a normal in-game SAVE and **CONTINUE** when upgrading. The existing save layout and map IDs are preserved; continuing a save inside the shop refreshes both clerks' script references for the new build. The earlier cave-footprint recovery remains active. Back up your cartridge save first; numbered emulator states remain tied to their exact ROM. Older immutable patches remain selectable.
+
+Validation for v1.6: all 34 source/release tests pass, and clean application of all source scripts builds a byte-identical ROM with RGBDS 1.0.4. Compiled validation checks all 67 free stock entries, normal pricing elsewhere, all 320 old cave save positions, shop clerk script references, counter geometry and font protection. Native gameplay continued a v1.5 save inside the shop, bought each of the 50 TMs with money still zero, retained all seven HMs, and opened both the HM and supplies stocks. Complete playthrough remains unverified.
+
 **New Bark Cave + Free Shop v1.5** adds a compact shop in the cave's **northwest corner**, leaving the center, east side and southern area open for future town buildings. Enter through the storefront door; the return door leads back to the cave. The lit cave and its Route 29 entrance remain.
 
 Two stationary clerks stand behind the counter. **Left clerk:** all seven HMs (Cut, Fly, Surf, Strength, Flash, Whirlpool, Waterfall), free and reusable. Badge requirements for field use remain original. **Right clerk:** Potion, Super Potion, Hyper Potion, Full Restore, Revive, Full Heal, Poké Ball, Great Ball, Ultra Ball and Master Ball. Every listed item costs **¥0**, with the normal quantity selector and stack/bag limits. Only this shop has free pricing; other marts keep their original prices. Shop stock is unlimited. Existing story HM gifts and quest flags are unchanged.
