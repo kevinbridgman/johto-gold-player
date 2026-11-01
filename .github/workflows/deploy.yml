@@ -5,6 +5,8 @@ on:
     branches: [main]
     paths:
       - 'index.html'
+      - 'gamepad-boost.js'
+      - 'tests/test_player_gamepad.cjs'
       - 'tests/test_player_touch.cjs'
       - 'save-slots.js'
       - 'save-slots-ui.js'
@@ -38,6 +40,8 @@ jobs:
         run: node tests/test_player_speed.cjs
       - name: Test save-state slots
         run: node tests/test_player_slots.cjs
+      - name: Test controller boost assignment
+        run: node tests/test_player_gamepad.cjs
       - name: Test mobile touch controls
         run: node tests/test_player_touch.cjs
       - name: Setup Pages

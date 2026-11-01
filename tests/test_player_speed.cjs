@@ -210,3 +210,34 @@ test('normal and boost targets remain independent even when boost is the lower t
  t.events.toggle();t.tick();t.tick();
  assert.equal(t.calls.filter(c=>c[0]==='ratio').at(-1)[1],8);
 });
+
+
+test('controller hold uses the same boost target and restores remembered normal speed',()=>{
+ const t=fixture('8','2');t.tick();t.tick();t.calls.length=0;
+ t.context.setControllerBoostHeld(true);t.tick();t.tick();
+ assert.equal(t.calls.filter(c=>c[0]==='ratio').at(-1)[1],8);
+ t.measure(1000,400);assert.match(t.status.textContent,/Controller held: 8× target/);
+ t.context.setControllerBoostHeld(false);t.tick();t.tick();
+ assert.equal(t.calls.filter(c=>c[0]==='ratio').at(-1)[1],2);
+ assert.equal(t.toggle.attributes['aria-pressed'],'false');
+});
+test('Space, controller hold, and mobile latch keep ownership when another source releases',()=>{
+ const t=fixture();t.context.setControllerBoostHeld(true);t.events.keydown(t.key());t.events.keyup(t.key());
+ assert.equal(t.toggle.attributes['aria-pressed'],'true');
+ t.context.setControllerBoostHeld(false);assert.equal(t.toggle.attributes['aria-pressed'],'false');
+ t.events.keydown(t.key());t.context.setControllerBoostHeld(true);t.context.setControllerBoostHeld(false);
+ assert.equal(t.toggle.attributes['aria-pressed'],'true');t.events.keyup(t.key());
+ t.events.toggle();t.context.setControllerBoostHeld(true);t.context.setControllerBoostHeld(false);
+ assert.equal(t.toggle.attributes['aria-pressed'],'true');t.events.toggle();
+ assert.equal(t.toggle.attributes['aria-pressed'],'false');
+});
+test('controller hold release and forced reset cancel delayed boost activation',()=>{
+ for(const exit of ['controller','blur','visibilitychange','toggle']){
+  const t=fixture();t.calls.length=0;t.context.setControllerBoostHeld(true);
+  if(exit==='controller')t.context.setControllerBoostHeld(false);
+  else if(exit==='visibilitychange'){t.context.document.hidden=true;t.events.visibilitychange();}
+  else if(exit==='toggle')t.events.toggle();else t.events.blur();
+  t.tick();t.tick();assert(!t.calls.some(c=>c[0]==='fast'&&c[1]===1));
+  assert.equal(t.toggle.attributes['aria-pressed'],'false');
+ }
+});

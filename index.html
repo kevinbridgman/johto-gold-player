@@ -95,6 +95,11 @@ a{color:#e7ca71}
 <option value="10">10×</option>
 </select>
 <p id="space-speed-help"><small>Hold Space or turn on the Speed boost button below the game to use this speed. Release Space or turn the button off to return to your normal gameplay speed. These are target speeds; the indicator below the game shows measured speed. Boost is an absolute speed, so 8× means 8× even when normal gameplay is set to 2×. Higher speeds depend on your device.</small></p>
+<h2>Controller speed boost</h2>
+<p id="controller-boost-status" role="status" aria-live="polite">Controller boost is not assigned.</p>
+<button id="controller-boost-bind" type="button">Assign controller button</button>
+<button id="controller-boost-clear" type="button" disabled>Clear controller assignment</button>
+<p><small>Connect your controller, press a button to make it visible to the browser, then select Assign and press your paddle. Hold it for the selected Speed boost target; release to return to normal gameplay speed. If the paddle is not detected, use the 8BitDo app to map it to an unused button such as a stick click, then assign it here. A mirrored paddle and its original button share this assignment.</small></p>
 <h2>Save states</h2>
 <p id="state-slots-message" role="status">Start a game to view its numbered save states. These are separate from Pokémon's normal SAVE.</p>
 <div id="state-slots" class="state-grid" aria-label="Numbered save-state slots"></div>
@@ -112,6 +117,7 @@ a{color:#e7ca71}
 </main>
 <script src="./save-slots.js"></script>
 <script src="./save-slots-ui.js"></script>
+<script src="./gamepad-boost.js"></script>
 <script>
 "use strict";
 const ROM_SHA1 = "d8b8a3600a465308c9953dfa04f0081c05bdcb94";
@@ -244,12 +250,13 @@ spaceSpeedSelect.value=String(spaceSpeed);
 let gameStarted=false;
 let spaceHeld=false;
 let speedToggled=false;
-function speedIsActive(){return spaceHeld||speedToggled;}
+let controllerHeld=false;
+function speedIsActive(){return spaceHeld||speedToggled||controllerHeld;}
 function syncSpeedButton(){
  speedToggle.setAttribute("aria-pressed",String(speedIsActive()));
  speedToggle.textContent="Speed boost: "+(speedIsActive()?"On":"Off")+" ("+spaceSpeed+"×)";
 }
-function speedLabel(){return speedToggled?"Speed boost":"Space held";}
+function speedLabel(){return speedToggled?"Speed boost":controllerHeld&&!spaceHeld?"Controller held":"Space held";}
 let normalVSync=true;
 let speedMeter=null;
 let speedTransitionTimer=null;
@@ -362,6 +369,7 @@ function initializeSpeedControls(){
  speedToggle.disabled=false;
  syncSpeedButton();
  applyNormalSpeed();
+ window.johtoControllerBoost?.attach(emulator);
 }
 spaceSpeedSelect.addEventListener("change",()=>{
  spaceSpeed=validSpaceSpeed(spaceSpeedSelect.value);
@@ -374,6 +382,8 @@ function releaseFastForward(){
  if(!speedIsActive())return;
  spaceHeld=false;
  speedToggled=false;
+ controllerHeld=false;
+ window.johtoControllerBoost?.suspend();
  syncSpeedButton();
  clearTimeout(speedTransitionTimer);
  speedTransitionTimer=null;
@@ -395,8 +405,18 @@ function startSpeedBoost(){
 }
 function releaseSpaceKey(){
  if(!spaceHeld)return;
- if(speedToggled){spaceHeld=false;return;}
+ if(speedToggled||controllerHeld){spaceHeld=false;syncSpeedButton();return;}
  releaseFastForward();
+}
+function setControllerBoostHeld(held){
+ if(!gameStarted||controllerHeld===held)return;
+ if(!held){
+  if(spaceHeld||speedToggled){controllerHeld=false;syncSpeedButton();return;}
+  releaseFastForward();return;
+ }
+ const alreadyActive=speedIsActive();
+ controllerHeld=true;syncSpeedButton();
+ if(!alreadyActive)startSpeedBoost();
 }
 speedToggle.addEventListener("click",()=>{
  if(!gameStarted)return;
@@ -419,7 +439,7 @@ window.addEventListener("keydown",event=>{
  if(spaceHeld||!emulator.gameManager)return;
  spaceHeld=true;
  syncSpeedButton();
- if(!speedToggled)startSpeedBoost();
+ if(!speedToggled&&!controllerHeld)startSpeedBoost();
 },true);
 window.addEventListener("keyup",event=>{
  if(event.code!=="Space"||!spaceHeld)return;
@@ -518,6 +538,37 @@ function ipsPatch(rom,patch){
   if(pos!==p.length)throw Error("Unexpected IPS trailing bytes");
   return out;
 }
+function initializeControllerBoost(){
+ const assign=document.querySelector("#controller-boost-bind"),clear=document.querySelector("#controller-boost-clear");
+ const message=document.querySelector("#controller-boost-status");
+ let storage;try{storage=localStorage;}catch{}
+ const controller=new JohtoControllerBoost.ControllerBoost({
+  readPads:()=>navigator.getGamepads?navigator.getGamepads():[],storage,
+  canPlay:()=>{
+   const emulator=window.EJS_emulator,active=document.activeElement;
+   const settingsOpen=typeof emulator?.isSettingsMenuOpen==="function"
+    ?emulator.isSettingsMenuOpen():!!(emulator?.settingsMenu&&emulator.settingsMenu.style.display!=="none");
+   return gameStarted&&!document.hidden&&document.hasFocus()&&!emulator?.paused&&!settingsOpen&&!emulator?.isPopupOpen?.()&&
+    !active?.closest("input,textarea,select,[contenteditable]");
+  },
+  onHold:setControllerBoostHeld,
+  onChange:({binding,listening,connected,note})=>{
+   assign.textContent=listening?"Cancel assignment":"Assign controller button";
+   clear.disabled=!binding;
+   message.textContent=listening?note:binding
+    ?"Hold controller button "+(binding.button+1)+" for boost · "+binding.id+" · "+(connected?"connected":"not detected")+". "+note
+    :note||"Controller boost is not assigned.";
+  }
+ });
+ window.johtoControllerBoost=controller;
+ assign.addEventListener("click",()=>{releaseFastForward();if(controller.listening)controller.cancelCapture();else controller.beginCapture();});
+ clear.addEventListener("click",()=>controller.clear());
+ window.addEventListener("blur",()=>controller.suspend(true));
+ document.addEventListener("visibilitychange",()=>{if(document.hidden)controller.suspend(true);});
+ const poll=()=>{controller.tick();requestAnimationFrame(poll);};poll();
+ if(!navigator.getGamepads){assign.disabled=true;message.textContent="This browser cannot read controller buttons. Try Chrome with your controller connected.";}
+}
+initializeControllerBoost();
 start.addEventListener("click",async()=>{
  start.disabled=true;
  try{
@@ -578,4 +629,5 @@ document.querySelector("#reload").addEventListener("click",()=>{
  location.reload();
 });
 </script></body></html>
+
 
