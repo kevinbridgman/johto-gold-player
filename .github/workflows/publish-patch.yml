@@ -32,8 +32,8 @@ jobs:
         run: python3 -m unittest discover -s tests -v
       - name: Install build dependencies
         run: |
-          sudo apt-get update
-          sudo apt-get install -y build-essential bison flex libpng-dev pkg-config git curl
+          sudo apt-get -o Acquire::Retries=1 -o Acquire::http::Timeout=30 -o Acquire::https::Timeout=30 update
+          sudo apt-get -o Acquire::Retries=1 -o Acquire::http::Timeout=30 -o Acquire::https::Timeout=30 install -y build-essential bison flex libpng-dev pkg-config git curl
       - name: Install RGBDS 1.0.4
         run: |
           git clone --depth 1 --branch v1.0.4 https://github.com/gbdev/rgbds.git /tmp/rgbds
@@ -50,6 +50,7 @@ jobs:
           python3 build-tools/patch_six_starters.py /tmp/pokegold
           python3 build-tools/patch_exp_modifier.py /tmp/pokegold
           python3 build-tools/patch_new_bark_cave.py /tmp/pokegold
+          python3 build-tools/patch_cave_shop.py /tmp/pokegold
       - name: Build modified ROM and generate IPS
         run: |
           make -C /tmp/pokegold gold -j"$(nproc)"
@@ -62,6 +63,8 @@ jobs:
           /tmp/exp-validation/bin/python build-tools/validate_exp_modifier.py /tmp/pokegold/pokegold.gbc
       - name: Validate compiled cave layout and warps
         run: python3 build-tools/validate_new_bark_cave.py /tmp/pokegold/pokegold.gbc
+      - name: Validate compiled free shop and old cave saves
+        run: /tmp/exp-validation/bin/python build-tools/validate_cave_shop.py /tmp/pokegold/pokegold.gbc
       - name: Register immutable release (no ROM)
         run: python3 build-tools/publish_release.py --baseline /tmp/johto-original.gbc --patch /tmp/johto-release.ips
       - name: Publish IPS and catalog to public repository

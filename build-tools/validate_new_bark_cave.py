@@ -30,13 +30,17 @@ assert attr[7:9]==pointer('NewBarkCave_MapScripts')
 assert attr[9:11]==pointer('NewBarkCave_MapEvents')
 assert attr[11]==0, 'no outside map connections'
 assert read('NewBarkCave_MapScripts',2)==bytes([0,0]), 'no scenes/callbacks'
-assert read('NewBarkCave_MapEvents',11)==bytes([0,0,1,15,9,2,24,3,0,0,0]), 'one exit and no objects/triggers'
+shop='CaveSupplyMart_MapScripts' in symbols
+events=read('NewBarkCave_MapEvents',8)
+assert events[:3]==bytes([0,0,2 if shop else 1])
+assert events[3:8]==bytes([15,9,2,24,3]), 'original cave exit preserved'
+if not shop:assert read('NewBarkCave_MapEvents',11)==bytes([0,0,1,15,9,2,24,3,0,0,0])
 route=read('Route29_MapEvents',13)
 assert route[:3]==bytes([0,0,2])
 assert route[3:8]==bytes([1,27,3,24,13]), 'original gate warp preserved'
 assert route[8:13]==bytes([5,52,1,24,14]), 'new entrance is warp 2'
 blocks=read('NewBarkCave_Blocks',80)
-coll=read('TilesetCaveColl',256*4)
+coll=read('TilesetCaveTownColl' if shop else 'TilesetCaveColl',256*4)
 # Use the actual compiled known floor/exit blocks so decoding stays
 # anchored to the ROM collision table.
 floor=coll[2*4]
@@ -48,11 +52,11 @@ while queue:
     x,y=queue.popleft()
     for p in [(x-1,y),(x+1,y),(x,y-1),(x,y+1)]:
         if p in walkable and p not in seen:seen.add(p);queue.append(p)
-assert walkable==seen and len(seen)>220
+assert walkable==seen and len(seen)>210
 for p in [(1,1),(18,1),(1,14),(18,14)]:assert p in seen
 wild=read('JohtoGrassWildMons',0x4000-(symbols['JohtoGrassWildMons'][1]%0x4000))
 for i in range(0,len(wild),47):
     if wild[i]==255:break
     assert wild[i:i+2]!=bytes([24,14]), 'cave has no wild encounters'
 else:raise AssertionError('Encounter table terminator not found')
-print('Compiled New Bark Cave: lit, empty, connected floor, paired warps and original gate preserved')
+print('Compiled New Bark Cave: lit, connected floor, paired warps and original gate preserved'+(' with northwest shop' if shop else ', empty'))

@@ -1,7 +1,7 @@
 {
   "id": "johto-starters-rival",
-  "name": "New Bark Cave",
-  "version": "1.4",
-  "description": "An empty, fully lit cave at Route 29's east end, just west of New Bark Town. One open chamber with a south exit back to the route. Reach it after choosing your first starter; no Flash, badges, or HMs needed. No wild encounters, trainers, NPCs, items, or quests yet. Includes all six-starter and EXP-option features from v1.3.",
-  "notes": "Empty cave test build. Back up your normal cartridge save before upgrading. Existing map IDs, progress flags, and save layout are preserved; v1.3 save/reopen tested. Saves inside the cave require v1.4 or newer: leave and save outside before reverting to an older patch. Use CONTINUE, not numbered states from another ROM. Complete playthrough remains unverified."
+  "name": "New Bark Cave + Free Shop",
+  "version": "1.5",
+  "description": "A compact shop in the cave's northwest corner leaves room for future town buildings. Two clerks behind the counter offer all seven reusable HMs and free supplies: Potions, Full Restore, Revive, Full Heal, and Poké/Great/Ultra/Master Balls. Everything costs ¥0 with normal quantities and bag limits. Includes all earlier cave, starter and EXP-option features.",
+  "notes": "Back up your normal cartridge save before upgrading. Older cave saves in the new building footprint move safely to its front door; other positions and save layout are preserved. Field HMs still need their normal badges. Stock is unlimited; other marts keep normal prices. Saves inside this shop need v1.5+. Use CONTINUE, not a numbered state from another ROM. Complete playthrough remains unverified."
 }
