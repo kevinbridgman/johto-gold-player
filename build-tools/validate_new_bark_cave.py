@@ -32,7 +32,9 @@ assert attr[11]==0, 'no outside map connections'
 assert read('NewBarkCave_MapScripts',2)==bytes([0,0]), 'no scenes/callbacks'
 shop='CaveSupplyMart_MapScripts' in symbols
 events=read('NewBarkCave_MapEvents',8)
-assert events[:3]==bytes([0,0,2 if shop else 1])
+wide_exit=shop and read('NewBarkCave_MapEvents',3)[2]==3
+assert events[:3]==bytes([0,0,3 if wide_exit else 2 if shop else 1])
+if wide_exit:assert read('NewBarkCave_MapEvents',18)[13:18]==bytes([15,8,2,24,3])
 assert events[3:8]==bytes([15,9,2,24,3]), 'original cave exit preserved'
 if not shop:assert read('NewBarkCave_MapEvents',11)==bytes([0,0,1,15,9,2,24,3,0,0,0])
 route=read('Route29_MapEvents',13)
@@ -45,6 +47,7 @@ coll=read('TilesetCaveTownColl' if shop else 'TilesetCaveColl',256*4)
 # anchored to the ROM collision table.
 floor=coll[2*4]
 exit_collision=coll[0x24*4+3]
+if wide_exit:assert coll[0x24*4+2]==exit_collision, "both exit tiles must warp south"
 grid={(x,y):coll[blocks[y//2*10+x//2]*4+y%2*2+x%2] for y in range(16) for x in range(20)}
 walkable={p for p,c in grid.items() if c in (floor,exit_collision)}
 seen={(9,15)};queue=deque(seen)

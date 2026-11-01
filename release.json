@@ -1,7 +1,7 @@
 {
   "id": "johto-starters-rival",
-  "name": "New Bark Cave + Free TM/HM Shop",
-  "version": "1.6",
-  "description": "The cave's northwest shop now offers all 50 TMs and all seven HMs for ¥0 from the left clerk. Choose TMs, then a group of ten, or choose HMs. The right clerk still offers free Potions, healing items and Poké/Great/Ultra/Master Balls. Includes earlier cave, six-starter and EXP-option features.",
-  "notes": "Back up your normal cartridge save before upgrading. Use CONTINUE; older saves made inside the shop refresh both clerks' script references. Save layout, existing map IDs and cave position recovery are preserved. TMs remain single-use with unlimited free restocking; HMs are reusable and field use still requires badges. Normal bag limits apply; other marts keep normal prices. Numbered states remain specific to their exact ROM. Complete playthrough remains unverified."
+  "name": "New Bark Cave + Named TM/HM Shop",
+  "version": "1.7",
+  "description": "The free cave shop lists each TM/HM's move name, with its machine number and ¥0 price underneath. The left clerk has all 50 TMs and seven HMs; the right clerk has free supplies. The cave's south exit is visibly marked with two stair tiles, and either side leads back to Route 29. Includes all earlier starter and EXP-option features.",
+  "notes": "Back up your normal cartridge save, select v1.7 and use CONTINUE. Existing save layout, map IDs, original exit warp and shop warp numbers are preserved. Walk south onto either marked stair tile, then continue down to leave. TMs remain single-use with free restocking; HMs remain reusable with normal field badges. Other marts keep original names/prices. Numbered states remain specific to their exact ROM. Complete playthrough remains unverified."
 }

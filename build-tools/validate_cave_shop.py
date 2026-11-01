@@ -90,7 +90,38 @@ assert grid[3,2]==grid[8,2]==counter and counter!=floor
 # New graphics must fit below font tile 0x60; retain existing cave floor/walls.
 meta=raw('TilesetCaveTownMeta',68*16)
 assert max(meta[64*16:])<96
-for b in [1,2,4,5,6,8,10,12,13,14,36]:
+wide_exit=raw("NewBarkCave_MapEvents",3)[2]==3
+if wide_exit:
+ assert meta[36*16:36*16+8]==raw("TilesetCaveMeta",64*16)[36*16:36*16+8]
+ assert max(meta[36*16:37*16])<96
+for b in [1,2,4,5,6,8,10,12,13,14]+([] if wide_exit else [36]):
     assert meta[b*16:b*16+16]==raw('TilesetCaveMeta',64*16)[b*16:b*16+16]
 print('Compiled shop counters, reusable cave art and protected font slots passed',flush=True)
+if 'PlaceMartMoveName' in sym:
+ moves=raw('TMHMMoves',57)
+ tilemap=sym['wTilemap'][1]
+ start=tilemap+2*20+2
+ def buffer_text():
+  data=read('wStringBuffer1',32)
+  return data[:data.index(0x50)]
+ for index,item in enumerate([*tm_stock,*hms[1:-1]]):
+  write('wNamedObjectIndex',moves[index]);call('GetMoveName');name=buffer_text()
+  write('wNamedObjectIndex',item);call('GetItemName');number=buffer_text()
+  assert len(name)<=12 and len(number)==4
+  p.memory[tilemap:tilemap+360]=[0x7f]*360
+  write('wMapGroup',24);write('wMapNumber',15);write('wMenuSelection',item)
+  p.register_file.D=start>>8;p.register_file.E=start&255
+  call('PlaceMartMoveName')
+  assert list(p.memory[start:start+len(name)])==name,(item,'move name')
+  assert list(p.memory[start+20:start+20+4])==number,(item,'machine number')
+  used=set(range(start,start+len(name)))|set(range(start+20,start+24))
+  assert all(p.memory[a]==0x7f for a in range(tilemap,tilemap+360) if a not in used), 'renderer overwrote other rows'
+ # Ordinary items and machines outside this shop retain the item-name renderer.
+ for group,mapnumber,item in [(24,15,1),(24,14,tm_stock[0]),(26,4,hms[1])]:
+  write('wNamedObjectIndex',item);call('GetItemName');expected=buffer_text()
+  p.memory[tilemap:tilemap+360]=[0x7f]*360
+  write('wMapGroup',group);write('wMapNumber',mapnumber);write('wMenuSelection',item)
+  p.register_file.D=start>>8;p.register_file.E=start&255;call('PlaceMartMoveName')
+  assert list(p.memory[start:start+len(expected)])==expected
+ print('All 57 machine move names and numbers render within their rows; other items/maps retain item names',flush=True)
 p.stop(save=False)

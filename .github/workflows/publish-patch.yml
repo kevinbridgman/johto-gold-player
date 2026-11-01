@@ -52,6 +52,8 @@ jobs:
           python3 build-tools/patch_new_bark_cave.py /tmp/pokegold
           python3 build-tools/patch_cave_shop.py /tmp/pokegold
           python3 build-tools/patch_cave_tms.py /tmp/pokegold
+          python3 build-tools/patch_mart_move_names.py /tmp/pokegold
+          python3 build-tools/patch_cave_exit.py /tmp/pokegold
       - name: Build modified ROM and generate IPS
         run: |
           make -C /tmp/pokegold gold -j"$(nproc)"

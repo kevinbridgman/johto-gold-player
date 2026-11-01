@@ -6,6 +6,12 @@ Browser player for Pokémon Gold using EmulatorJS, with optional versioned IPS m
 
 ## Available modifications
 
+**New Bark Cave + Named TM/HM Shop v1.7** shows each machine's **move name** in the cave shop's buy list, with its **TM/HM number and ¥0 price underneath**. This applies to all 50 TMs and seven HMs from the left clerk. The five TM catalogs and unlimited free stock remain; supplies and other marts retain their existing item listings.
+
+The cave's south opening now has **two visible downward stair tiles**. Walk onto either tile at the bottom center, then keep pressing **Down** to return to Route 29. Previously only the unmarked right-hand tile triggered the exit. Both sides now work. The original cave exit remains warp 1, the shop remains warp 2, and the second exit tile is appended as warp 3. Map IDs and save layout remain unchanged. Use **CONTINUE** from a normal cartridge save after changing patch versions; back it up first. Numbered states remain tied to the exact ROM.
+
+Validation for v1.7: all 34 source/release tests pass. RGBDS 1.0.4 builds the release. Compiled PyBoy checks render all 57 correct move names and machine numbers within their two rows, verify ordinary item names and names outside the shop are unchanged, and retain the stock/pricing, saved-clerk, cave recovery, geometry and font checks. Native gameplay purchased a TM using the new listing, continued an older cave save, walked out through each exit tile to Route 29 and re-entered successfully. Complete playthrough remains unverified.
+
 **New Bark Cave + Free TM/HM Shop v1.6** adds **all 50 original Gold TMs** to the same left-hand clerk who supplies the seven HMs. Talk over his counter, choose **TMs**, then choose **TM01–10**, **TM11–20**, **TM21–30**, **TM31–40**, or **TM41–50**. Choose **HMs** for the original HM stock. Every machine costs **¥0**, with unlimited restocking and normal quantity/bag limits. TMs retain their original single-use behavior; HMs remain reusable with the original field badge requirements. The right-hand supplies clerk, shop building and cave layout remain unchanged.
 
 Use a normal in-game SAVE and **CONTINUE** when upgrading. The existing save layout and map IDs are preserved; continuing a save inside the shop refreshes both clerks' script references for the new build. The earlier cave-footprint recovery remains active. Back up your cartridge save first; numbered emulator states remain tied to their exact ROM. Older immutable patches remain selectable.
