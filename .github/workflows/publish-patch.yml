@@ -54,6 +54,7 @@ jobs:
           python3 build-tools/patch_cave_tms.py /tmp/pokegold
           python3 build-tools/patch_mart_move_names.py /tmp/pokegold
           python3 build-tools/patch_cave_exit.py /tmp/pokegold
+          python3 build-tools/patch_cave_village.py /tmp/pokegold
       - name: Build modified ROM and generate IPS
         run: |
           make -C /tmp/pokegold gold -j"$(nproc)"
@@ -68,6 +69,8 @@ jobs:
         run: python3 build-tools/validate_new_bark_cave.py /tmp/pokegold/pokegold.gbc
       - name: Validate compiled free shop and old cave saves
         run: /tmp/exp-validation/bin/python build-tools/validate_cave_shop.py /tmp/pokegold/pokegold.gbc
+      - name: Validate compiled village paths and interiors
+        run: python3 build-tools/validate_cave_village.py /tmp/pokegold/pokegold.gbc
       - name: Register immutable release (no ROM)
         run: python3 build-tools/publish_release.py --baseline /tmp/johto-original.gbc --patch /tmp/johto-release.ips
       - name: Publish IPS and catalog to public repository

@@ -62,9 +62,13 @@ for y in range(16):
     write('wMapGroup',24);write('wMapNumber',14);write('wXCoord',x);write('wYCoord',y)
     call('CaveShopSafeContinue')
     expected=(3,6) if 2<=x<6 and 2<=y<6 else (x,y)
+    if 'CaveLodge_MapScripts' in sym:
+        if 12<=x<16 and 2<=y<6:expected=(13,6)
+        elif 12<=x<16 and 8<=y<12:expected=(13,12)
+        elif (x,y) in ((4,10),(7,7),(2,7),(17,7),(6,12),(3,11)):expected=(8,12)
     assert (read('wXCoord'),read('wYCoord'))==expected,(x,y,expected)
     if expected!=(x,y):
-        assert read('wPlayerMapX')==7 and read('wPlayerMapY')==10
+        assert read('wPlayerMapX')==expected[0]+4 and read('wPlayerMapY')==expected[1]+4
 write('wMapNumber',15);write('wXCoord',3);write('wYCoord',3);call('CaveShopSafeContinue')
 assert (read('wXCoord'),read('wYCoord'))==(3,3)
 if tm_stock:
@@ -90,7 +94,7 @@ assert grid[3,2]==grid[8,2]==counter and counter!=floor
 # New graphics must fit below font tile 0x60; retain existing cave floor/walls.
 meta=raw('TilesetCaveTownMeta',68*16)
 assert max(meta[64*16:])<96
-wide_exit=raw("NewBarkCave_MapEvents",3)[2]==3
+wide_exit=raw("NewBarkCave_MapEvents",3)[2]>=3
 if wide_exit:
  assert meta[36*16:36*16+8]==raw("TilesetCaveMeta",64*16)[36*16:36*16+8]
  assert max(meta[36*16:37*16])<96

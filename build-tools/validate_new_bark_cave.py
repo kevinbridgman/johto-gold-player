@@ -32,8 +32,9 @@ assert attr[11]==0, 'no outside map connections'
 assert read('NewBarkCave_MapScripts',2)==bytes([0,0]), 'no scenes/callbacks'
 shop='CaveSupplyMart_MapScripts' in symbols
 events=read('NewBarkCave_MapEvents',8)
-wide_exit=shop and read('NewBarkCave_MapEvents',3)[2]==3
-assert events[:3]==bytes([0,0,3 if wide_exit else 2 if shop else 1])
+village='CaveLodge_MapScripts' in symbols
+wide_exit=shop and read('NewBarkCave_MapEvents',3)[2]>=3
+assert events[:3]==bytes([0,0,5 if village else 3 if wide_exit else 2 if shop else 1])
 if wide_exit:assert read('NewBarkCave_MapEvents',18)[13:18]==bytes([15,8,2,24,3])
 assert events[3:8]==bytes([15,9,2,24,3]), 'original cave exit preserved'
 if not shop:assert read('NewBarkCave_MapEvents',11)==bytes([0,0,1,15,9,2,24,3,0,0,0])
@@ -49,13 +50,13 @@ floor=coll[2*4]
 exit_collision=coll[0x24*4+3]
 if wide_exit:assert coll[0x24*4+2]==exit_collision, "both exit tiles must warp south"
 grid={(x,y):coll[blocks[y//2*10+x//2]*4+y%2*2+x%2] for y in range(16) for x in range(20)}
-walkable={p for p,c in grid.items() if c in (floor,exit_collision)}
+walkable={p for p,c in grid.items() if c in (floor,exit_collision,coll[3*4])}
 seen={(9,15)};queue=deque(seen)
 while queue:
     x,y=queue.popleft()
     for p in [(x-1,y),(x+1,y),(x,y-1),(x,y+1)]:
         if p in walkable and p not in seen:seen.add(p);queue.append(p)
-assert walkable==seen and len(seen)>210
+assert walkable==seen and len(seen)>(170 if village else 210)
 for p in [(1,1),(18,1),(1,14),(18,14)]:assert p in seen
 wild=read('JohtoGrassWildMons',0x4000-(symbols['JohtoGrassWildMons'][1]%0x4000))
 for i in range(0,len(wild),47):
