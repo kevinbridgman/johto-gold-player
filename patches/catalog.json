@@ -2,6 +2,16 @@
   "schemaVersion": 1,
   "patches": [
     {
+      "id": "johto-starters-rival-v1.5",
+      "name": "New Bark Cave + Free Shop",
+      "version": "1.5",
+      "description": "A compact shop in the cave's northwest corner leaves room for future town buildings. Two clerks behind the counter offer all seven reusable HMs and free supplies: Potions, Full Restore, Revive, Full Heal, and Pok\u00e9/Great/Ultra/Master Balls. Everything costs \u00a50 with normal quantities and bag limits. Includes all earlier cave, starter and EXP-option features.",
+      "notes": "Back up your normal cartridge save before upgrading. Older cave saves in the new building footprint move safely to its front door; other positions and save layout are preserved. Field HMs still need their normal badges. Stock is unlimited; other marts keep normal prices. Saves inside this shop need v1.5+. Use CONTINUE, not a numbered state from another ROM. Complete playthrough remains unverified.",
+      "file": "patches/johto-starters-rival-v1.5.ips",
+      "sha256": "a0c7d185736989b708bdd24ed435bc0b862e281a9085c91de692c74503021145",
+      "baseSha1": "d8b8a3600a465308c9953dfa04f0081c05bdcb94"
+    },
+    {
       "id": "johto-starters-rival-v1.4",
       "name": "New Bark Cave",
       "version": "1.4",
