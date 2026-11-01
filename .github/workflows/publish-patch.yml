@@ -49,6 +49,7 @@ jobs:
         run: |
           python3 build-tools/patch_six_starters.py /tmp/pokegold
           python3 build-tools/patch_exp_modifier.py /tmp/pokegold
+          python3 build-tools/patch_new_bark_cave.py /tmp/pokegold
       - name: Build modified ROM and generate IPS
         run: |
           make -C /tmp/pokegold gold -j"$(nproc)"
@@ -59,6 +60,8 @@ jobs:
           python3 -m venv /tmp/exp-validation
           /tmp/exp-validation/bin/pip install pyboy==2.9.0
           /tmp/exp-validation/bin/python build-tools/validate_exp_modifier.py /tmp/pokegold/pokegold.gbc
+      - name: Validate compiled cave layout and warps
+        run: python3 build-tools/validate_new_bark_cave.py /tmp/pokegold/pokegold.gbc
       - name: Register immutable release (no ROM)
         run: python3 build-tools/publish_release.py --baseline /tmp/johto-original.gbc --patch /tmp/johto-release.ips
       - name: Publish IPS and catalog to public repository

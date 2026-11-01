@@ -1,7 +1,7 @@
 {
   "id": "johto-starters-rival",
-  "name": "All Six Starters + EXP Options",
-  "version": "1.3",
-  "description": "Collect all six Kanto and Johto starters from Elm once each, with the shrinking menu from v1.2. In the game's START → OPTION menu, choose EXP GAIN from 1x to 10x with Left/Right. Default 1x; saved with normal game options. Multiplies battle EXP after trainer/traded/Lucky Egg bonuses, including EXP SHARE awards. Gameplay speed is independent.",
-  "notes": "Back up your normal cartridge save before upgrading from v1.1/v1.2. Existing save layout and flags are preserved; old options default to 1x. Use CONTINUE rather than a numbered state from another patch. Stat EXP and the level-100 cap are unchanged. v1.0 upgrades and complete playthrough remain unverified."
+  "name": "New Bark Cave",
+  "version": "1.4",
+  "description": "An empty, fully lit cave at Route 29's east end, just west of New Bark Town. One open chamber with a south exit back to the route. Reach it after choosing your first starter; no Flash, badges, or HMs needed. No wild encounters, trainers, NPCs, items, or quests yet. Includes all six-starter and EXP-option features from v1.3.",
+  "notes": "Empty cave test build. Back up your normal cartridge save before upgrading. Existing map IDs, progress flags, and save layout are preserved; v1.3 save/reopen tested. Saves inside the cave require v1.4 or newer: leave and save outside before reverting to an older patch. Use CONTINUE, not numbered states from another ROM. Complete playthrough remains unverified."
 }
