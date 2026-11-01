@@ -2,6 +2,16 @@
   "schemaVersion": 1,
   "patches": [
     {
+      "id": "johto-starters-rival-v1.8",
+      "name": "Lantern Hollow Village",
+      "version": "1.8",
+      "description": "Explore Lantern Hollow inside New Bark Cave: a free healing lodge with a working PC, Coach Brin's repeatable L5/L15/L30 practice battles, and Mira's Lantern Garden with free berries and a three-lantern quest for a Lucky Egg. The free TM/HM and supply shop, marked cave exits, all six starters and EXP options remain.",
+      "notes": "Back up your normal cartridge save, select v1.8 and use CONTINUE. Old cave saves load the fresh layout and move out of new buildings or residents; village NPC scripts refresh on Continue. Existing map/trainer/event IDs and save layout are preserved. Practice heals before/after, awards normal EXP, and allows losing without blackout. Garden quest progress persists; the Lucky Egg is once per save and waits if your bag is full. Lodge/hall saves require v1.8+; leave and save outside before reverting. Numbered states are exact-ROM-specific. Complete playthrough remains unverified.",
+      "file": "patches/johto-starters-rival-v1.8.ips",
+      "sha256": "cfcc62299988641fc499c62f89cb4483b0972e8f3b676bda74e4aa1bebc29175",
+      "baseSha1": "d8b8a3600a465308c9953dfa04f0081c05bdcb94"
+    },
+    {
       "id": "johto-starters-rival-v1.7",
       "name": "New Bark Cave + Named TM/HM Shop",
       "version": "1.7",
