@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - 'index.html'
+      - 'patches/**'
       - 'gamepad-boost.js'
       - 'tests/test_player_gamepad.cjs'
       - 'tests/test_player_touch.cjs'

@@ -2,6 +2,16 @@
   "schemaVersion": 1,
   "patches": [
     {
+      "id": "johto-starters-rival-v1.4",
+      "name": "New Bark Cave",
+      "version": "1.4",
+      "description": "An empty, fully lit cave at Route 29's east end, just west of New Bark Town. One open chamber with a south exit back to the route. Reach it after choosing your first starter; no Flash, badges, or HMs needed. No wild encounters, trainers, NPCs, items, or quests yet. Includes all six-starter and EXP-option features from v1.3.",
+      "notes": "Empty cave test build. Back up your normal cartridge save before upgrading. Existing map IDs, progress flags, and save layout are preserved; v1.3 save/reopen tested. Saves inside the cave require v1.4 or newer: leave and save outside before reverting to an older patch. Use CONTINUE, not numbered states from another ROM. Complete playthrough remains unverified.",
+      "file": "patches/johto-starters-rival-v1.4.ips",
+      "sha256": "c87e28f9fd55a7eac568596cce0c16a57e3ecd2d66e595e689fc7ec6463f7616",
+      "baseSha1": "d8b8a3600a465308c9953dfa04f0081c05bdcb94"
+    },
+    {
       "id": "johto-starters-rival-v1.3",
       "name": "All Six Starters + EXP Options",
       "version": "1.3",
