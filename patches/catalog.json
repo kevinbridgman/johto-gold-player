@@ -2,6 +2,16 @@
   "schemaVersion": 1,
   "patches": [
     {
+      "id": "johto-starters-rival-v1.7",
+      "name": "New Bark Cave + Named TM/HM Shop",
+      "version": "1.7",
+      "description": "The free cave shop lists each TM/HM's move name, with its machine number and \u00a50 price underneath. The left clerk has all 50 TMs and seven HMs; the right clerk has free supplies. The cave's south exit is visibly marked with two stair tiles, and either side leads back to Route 29. Includes all earlier starter and EXP-option features.",
+      "notes": "Back up your normal cartridge save, select v1.7 and use CONTINUE. Existing save layout, map IDs, original exit warp and shop warp numbers are preserved. Walk south onto either marked stair tile, then continue down to leave. TMs remain single-use with free restocking; HMs remain reusable with normal field badges. Other marts keep original names/prices. Numbered states remain specific to their exact ROM. Complete playthrough remains unverified.",
+      "file": "patches/johto-starters-rival-v1.7.ips",
+      "sha256": "32a57e7cc8e3065ff262632059ad0e71856a9f4d5a159992e6e16057746254e3",
+      "baseSha1": "d8b8a3600a465308c9953dfa04f0081c05bdcb94"
+    },
+    {
       "id": "johto-starters-rival-v1.6",
       "name": "New Bark Cave + Free TM/HM Shop",
       "version": "1.6",
