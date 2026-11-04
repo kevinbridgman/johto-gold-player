@@ -1,7 +1,7 @@
 {
   "id": "johto-starters-rival",
-  "name": "Lantern Hollow + Coach Brin Art",
-  "version": "1.9",
-  "description": "Coach Brin now has an original headlamp-cap, scarf and blue expedition-jacket design: a six-frame native 16×16 overworld sprite and matching 56×56 battle portrait. His battle title is COACH BRIN. All three training teams, safe practice rules and village features remain.",
-  "notes": "Back up your normal cartridge save, select v1.9 and use CONTINUE. Existing hall saves refresh Brin's sprite on Continue. No saved bytes, map IDs, trainer IDs, Pokémon sprites, player artwork or other trainer graphics change. Artwork remains at original Game Boy Color resolution. Numbered states remain exact-ROM-specific. Complete playthrough remains unverified."
+  "name": "Lantern Hollow + Clearer Brin Sprite",
+  "version": "1.10",
+  "description": "Coach Brin's small overworld sprite is redesigned with a larger face, broader shoulders, a clear headlamp and scarf, and simpler blue shapes. All six 16×16 poses share a consistent 14-pixel-wide silhouette and foot baseline, matching the player better. His battle portrait and all village gameplay remain unchanged.",
+  "notes": "Back up your normal cartridge save, select v1.10 and use CONTINUE. This revision changes only Brin's overworld pixel data and ROM checksums compared with v1.9; save layout, scripts, IDs, battle portrait and gameplay remain identical. Existing hall saves refresh his sprite on Continue. Older releases remain available. Numbered states remain tied to their exact ROM."
 }

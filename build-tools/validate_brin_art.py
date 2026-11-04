@@ -12,6 +12,23 @@ def raw(name,n):
  b,a=sym[name];off=b*0x4000+a%0x4000;return rom[off:off+n]
 art=json.loads(Path(__file__).with_name('brin_art.json').read_text())
 assert raw('CaveBrinSpriteGFX',384)==bytes(art['overworld'])
+if art.get('overworld_revision',1)>=2:
+ # All six poses retain a 14-pixel silhouette and shared bottom row, avoiding the
+ # narrow side profiles and independently scaled poses of the first revision.
+ data=bytes(art['overworld'])
+ for frame in range(6):
+  coords=[]
+  for ty in range(2):
+   for tx in range(2):
+    start=frame*64+(ty*2+tx)*16
+    for y in range(8):
+     lo,hi=data[start+y*2:start+y*2+2]
+     for x in range(8):
+      value=((lo>>(7-x))&1)+2*((hi>>(7-x))&1)
+      if value:coords.append((tx*8+x,ty*8+y))
+  xs=[q[0] for q in coords];ys=[q[1] for q in coords]
+  assert (min(xs),max(xs),min(ys),max(ys))==(1,14,0,15),('inconsistent sprite footprint',frame)
+
 encoded=raw('CaveBrinPic',900);decoded=bytearray();i=0
 while encoded[i]!=255:
  n=encoded[i]+1;assert n<=32;decoded.extend(encoded[i+1:i+1+n]);i+=n+1
