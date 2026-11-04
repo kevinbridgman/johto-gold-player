@@ -2,6 +2,16 @@
   "schemaVersion": 1,
   "patches": [
     {
+      "id": "johto-starters-rival-v1.9",
+      "name": "Lantern Hollow + Coach Brin Art",
+      "version": "1.9",
+      "description": "Coach Brin now has an original headlamp-cap, scarf and blue expedition-jacket design: a six-frame native 16\u00d716 overworld sprite and matching 56\u00d756 battle portrait. His battle title is COACH BRIN. All three training teams, safe practice rules and village features remain.",
+      "notes": "Back up your normal cartridge save, select v1.9 and use CONTINUE. Existing hall saves refresh Brin's sprite on Continue. No saved bytes, map IDs, trainer IDs, Pok\u00e9mon sprites, player artwork or other trainer graphics change. Artwork remains at original Game Boy Color resolution. Numbered states remain exact-ROM-specific. Complete playthrough remains unverified.",
+      "file": "patches/johto-starters-rival-v1.9.ips",
+      "sha256": "06af51e11d7c7d71a05ff9f2a87586251fb3fa84a663a6645b77047ce71b69c9",
+      "baseSha1": "d8b8a3600a465308c9953dfa04f0081c05bdcb94"
+    },
+    {
       "id": "johto-starters-rival-v1.8",
       "name": "Lantern Hollow Village",
       "version": "1.8",
