@@ -6,6 +6,12 @@ Browser player for Pokémon Gold using EmulatorJS, with optional versioned IPS m
 
 ## Available modifications
 
+**Lantern Hollow + Coach Brin Art v1.9** gives Brin an original cave-explorer design: a headlamp cap, neckerchief, utility belt, boots and blue training jacket. His overworld sprite has six native **16×16** frames (front/back/side standing and walking), and his matching battle portrait is **56×56** with a four-color palette. His battle introduction now calls him **COACH BRIN**. The artwork stays within original Game Boy Color resolution.
+
+Only Brin's three practice encounters in the training hall use the new portrait, palette and title. Other trainers, the player and Pokémon keep their existing art. A new overworld sprite ID is appended below the unchanged Pokémon sprite range. Existing trainer IDs/classes, teams, EXP, healing, money rules, map/event IDs and save layout stay unchanged. Continue from a normal cartridge save after backing it up; existing village saves refresh NPC data and show Brin's new sprite. Numbered states remain tied to their exact ROM. Earlier immutable IPS releases remain available.
+
+Validation: 37 existing source/release tests pass. A clean RGBDS 1.0.4 source build matches the tested ROM. Compiled validation checks all native art bytes, the sprite-table entry, battle title buffers, 72 map/class/trainer-ID combinations and the unchanged player palette. Existing village, shop, migration and EXP validations remain in the workflows. Native gameplay continued a v1.8 hall save with all six starters retained, displayed the new overworld sprite and COACH BRIN battle portrait, completed a safe practice loss and healed afterward. Full playthrough remains unverified.
+
 **Lantern Hollow Village v1.8** turns the lit cave into a small settlement, keeping the northwest free shop and the central north–south path. Three additions are ready to explore:
 
 1. **Lantern Lodge, northeast:** a nurse offers free rest, restoring HP, PP and status. The standard working PC provides Pokémon and item storage. A traveling sailor has found his favorite quiet bed. The unused upstairs/link stairs are removed.
