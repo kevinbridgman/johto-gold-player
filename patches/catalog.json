@@ -2,6 +2,16 @@
   "schemaVersion": 1,
   "patches": [
     {
+      "id": "johto-starters-rival-v1.10",
+      "name": "Lantern Hollow + Clearer Brin Sprite",
+      "version": "1.10",
+      "description": "Coach Brin's small overworld sprite is redesigned with a larger face, broader shoulders, a clear headlamp and scarf, and simpler blue shapes. All six 16\u00d716 poses share a consistent 14-pixel-wide silhouette and foot baseline, matching the player better. His battle portrait and all village gameplay remain unchanged.",
+      "notes": "Back up your normal cartridge save, select v1.10 and use CONTINUE. This revision changes only Brin's overworld pixel data and ROM checksums compared with v1.9; save layout, scripts, IDs, battle portrait and gameplay remain identical. Existing hall saves refresh his sprite on Continue. Older releases remain available. Numbered states remain tied to their exact ROM.",
+      "file": "patches/johto-starters-rival-v1.10.ips",
+      "sha256": "200426c7b5ca2e76c6daa3cca8626df9cb902d7b64ff85c3cd932be435314e8e",
+      "baseSha1": "d8b8a3600a465308c9953dfa04f0081c05bdcb94"
+    },
+    {
       "id": "johto-starters-rival-v1.9",
       "name": "Lantern Hollow + Coach Brin Art",
       "version": "1.9",
