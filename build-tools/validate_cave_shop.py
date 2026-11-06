@@ -66,6 +66,7 @@ for y in range(16):
         if 12<=x<16 and 2<=y<6:expected=(13,6)
         elif 12<=x<16 and 8<=y<12:expected=(13,12)
         elif (x,y) in ((4,10),(7,7),(2,7),(17,7),(6,12),(3,11)):expected=(8,12)
+    if 'CaveRileyGym_MapScripts' in sym and ((6<=x<12 and y<4) or (x,y)==(7,5)):expected=(8,4)
     assert (read('wXCoord'),read('wYCoord'))==expected,(x,y,expected)
     if expected!=(x,y):
         assert read('wPlayerMapX')==expected[0]+4 and read('wPlayerMapY')==expected[1]+4

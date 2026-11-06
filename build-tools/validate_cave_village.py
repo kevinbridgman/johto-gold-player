@@ -27,9 +27,10 @@ npcs=[(4,10),(7,7),(2,7),(17,7),(6,12),(3,11)]
 seen=reachable(cave,(9,14),npcs)
 for q in [(3,6),(13,6),(13,12),(5,10),(3,7),(16,7),(7,12),(8,14),(9,15),(8,15)]:assert q in seen,('blocked village route',q)
 for x,y in npcs:assert any(q in seen for q in ((x-1,y),(x+1,y),(x,y-1),(x,y+1))),('unreachable resident',x,y)
+gym='CaveRileyGym_MapScripts' in sym
 events=raw('NewBarkCave_MapEvents',28)
-assert events[:3]==bytes([0,0,5])
-assert events[3:]==bytes([15,9,2,24,3,5,3,1,24,15,15,8,2,24,3,5,13,1,24,16,11,13,1,24,17])
+assert events[:3]==bytes([0,0,6 if gym else 5])
+assert events[3:28]==bytes([15,9,2,24,3,5,3,1,24,15,15,8,2,24,3,5,13,1,24,16,11,13,1,24,17])
 for name,w,h,tileset,mapid,returnwarp,doors,npcs,targets in [
  ('CaveLodge',5,4,'TilesetPokecenter',16,4,[(3,7),(4,7)],[(3,1),(7,5)],[(3,3),(9,2)]),
  ('CaveTrainingHall',5,6,'TilesetTrainStation',17,5,[(4,11),(5,11)],[(4,3),(7,8)],[(4,4),(6,8)])]:
@@ -48,8 +49,9 @@ for name,w,h,tileset,mapid,returnwarp,doors,npcs,targets in [
  header=raw('MapGroup_NewBark',17*9)[(mapid-1)*9:mapid*9]
  assert header[0]==sym[name+'_MapAttributes'][0] and header[3:5]==sym[name+'_MapAttributes'][1].to_bytes(2,'little')
  # Verify the two actual saved NPCs' pointers use this build's scripts on CONTINUE.
-meta=raw('TilesetCaveTownMeta',73*16);blocks=raw('NewBarkCave_Blocks',80)
-assert len(meta)==73*16 and max(t for b in set(blocks)|{1} for t in meta[b*16:b*16+16])<96,'art below font slots'
+nblocks=80 if gym else 73
+meta=raw('TilesetCaveTownMeta',nblocks*16);blocks=raw('NewBarkCave_Blocks',80)
+assert len(meta)==nblocks*16 and max(t for b in set(blocks)|{1} for t in meta[b*16:b*16+16])<96,'art below font slots'
 # Trainer IDs 13-15 append to YOUNGSTER; earlier teams stay in place.
 teams=raw('CaveCoachTeams',64);at=0
 for expected in [[(5,19),(5,16)],[(15,27),(15,179),(15,194)],[(30,75),(30,93),(30,42)]]:
@@ -59,3 +61,21 @@ for expected in [[(5,19),(5,16)],[(15,27),(15,179),(15,194)],[(30,75),(30,93),(3
  for level,species in expected:assert teams[at:at+2]==bytes([level,species]);at+=2
  assert teams[at]==255;at+=1
 print('Compiled Lantern Hollow: every destination reachable, paired lodge/hall warps, native PC and nurse, protected font slots and L5/L15/L30 teams passed')
+
+if gym:
+ assert raw('NewBarkCave_MapEvents',33)[28:33]==bytes([3,8,1,24,18]),'new gym appended as warp 6'
+ assert (8,4) in seen and (7,6) in seen,'gym door and sign reachable from the street'
+ assert raw('CaveRileyGym_MapScripts',2)==bytes([0,0]),'no automatic scenes or callbacks'
+ attr=raw('CaveRileyGym_MapAttributes',12);assert attr[:3]==bytes([0,6,5]) and attr[-1]==0
+ header=raw('MapGroup_NewBark',18*9)[17*9:18*9]
+ assert header[0]==sym['CaveRileyGym_MapAttributes'][0] and header[3:5]==sym['CaveRileyGym_MapAttributes'][1].to_bytes(2,'little')
+ e=raw('CaveRileyGym_MapEvents',13)
+ assert e==bytes([0,0,2,11,4,6,24,14,11,5,6,24,14]),'both gym doors return to cave warp 6'
+ g=grid('CaveRileyGym',5,6,'TilesetEliteFourRoom');r=reachable(g,(4,11),[(4,3),(2,7)])
+ for q in [(4,4),(3,7),(4,9),(5,9),(5,11)]:assert q in r,('gym approach blocked',q)
+ assert g[3,9]==7 and g[6,9]==7,'statues remain solid'
+ for label in ['CaveRileyGymLeader','CaveRileyGymGuide']:
+  # Each NPC is exactly a native jumptextfaceplayer command (opcode 0x51)
+  # followed by its text pointer; no trainer flags or battle command are used.
+  assert raw(label,1)==bytes([0x51]),('placeholder NPC must only talk',label)
+ print('Compiled Riley placeholder gym: appended map ID/warp, connected interior, reachable leader/guide/statues, paired exits and dialogue-only NPCs passed')

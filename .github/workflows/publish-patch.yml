@@ -56,6 +56,7 @@ jobs:
           python3 build-tools/patch_cave_exit.py /tmp/pokegold
           python3 build-tools/patch_cave_village.py /tmp/pokegold
           python3 build-tools/patch_brin_art.py /tmp/pokegold
+          python3 build-tools/patch_riley_gym.py /tmp/pokegold
       - name: Build modified ROM and generate IPS
         run: |
           make -C /tmp/pokegold gold -j"$(nproc)"
@@ -102,8 +103,11 @@ jobs:
       - name: Upload static site and new patch
         uses: actions/upload-pages-artifact@v3
         with:
+          name: github-pages-${{ github.run_attempt }}
           path: .
       - name: Deploy player and published patch
         id: deployment
         uses: actions/deploy-pages@v4
+        with:
+          artifact_name: github-pages-${{ github.run_attempt }}
 

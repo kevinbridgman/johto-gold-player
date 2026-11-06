@@ -34,7 +34,7 @@ shop='CaveSupplyMart_MapScripts' in symbols
 events=read('NewBarkCave_MapEvents',8)
 village='CaveLodge_MapScripts' in symbols
 wide_exit=shop and read('NewBarkCave_MapEvents',3)[2]>=3
-assert events[:3]==bytes([0,0,5 if village else 3 if wide_exit else 2 if shop else 1])
+assert events[:3]==bytes([0,0,6 if 'CaveRileyGym_MapScripts' in symbols else 5 if village else 3 if wide_exit else 2 if shop else 1])
 if wide_exit:assert read('NewBarkCave_MapEvents',18)[13:18]==bytes([15,8,2,24,3])
 assert events[3:8]==bytes([15,9,2,24,3]), 'original cave exit preserved'
 if not shop:assert read('NewBarkCave_MapEvents',11)==bytes([0,0,1,15,9,2,24,3,0,0,0])
