@@ -2,6 +2,16 @@
   "schemaVersion": 1,
   "patches": [
     {
+      "id": "johto-starters-rival-v1.11",
+      "name": "Lantern Hollow + Riley's Gym",
+      "version": "1.11",
+      "description": "A new gym stands at the north end of Lantern Hollow's central street, between the shop and lodge. Enter to meet Gym Leader Riley, her guide, and the gym statues. Riley has a temporary female overworld sprite and a short introduction while her details are being planned. All previous village features and Brin's clearer sprite remain.",
+      "notes": "Placeholder gym: Riley only talks; there is no battle, team, type, badge, puzzle, or reward yet. Back up your normal cartridge save, select v1.11 and use CONTINUE. Existing map IDs, event/trainer IDs and save layout remain unchanged. Older cave saves in the new gym/sign footprint move safely to its front door; the village reloads current NPC scripts and blocks, including gym saves. A save inside this gym needs v1.11+; leave and save outside before reverting. Numbered states remain exact-ROM-specific.",
+      "file": "patches/johto-starters-rival-v1.11.ips",
+      "sha256": "887867217c84d3cf3adb00dc9661d5a152e033e0c8a7118460c786874affef23",
+      "baseSha1": "d8b8a3600a465308c9953dfa04f0081c05bdcb94"
+    },
+    {
       "id": "johto-starters-rival-v1.10",
       "name": "Lantern Hollow + Clearer Brin Sprite",
       "version": "1.10",
