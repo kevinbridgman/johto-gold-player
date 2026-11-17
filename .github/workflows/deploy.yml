@@ -5,6 +5,11 @@ on:
     branches: [main]
     paths:
       - 'index.html'
+      - 'rom-system.js'
+      - 'tests/test_player_roms.cjs'
+      - 'tests/browser_handheld.cjs'
+      - 'tests/fixtures/make_gba_demo.py'
+      - '.github/workflows/player-browser.yml'
       - 'patches/**'
       - 'gamepad-boost.js'
       - 'tests/test_player_gamepad.cjs'
@@ -27,7 +32,10 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  handheld-check:
+    uses: ./.github/workflows/player-browser.yml
   deploy:
+    needs: handheld-check
     runs-on: ubuntu-latest
     environment:
       name: github-pages

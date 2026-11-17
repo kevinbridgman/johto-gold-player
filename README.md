@@ -1,8 +1,18 @@
 # Johto Gold Player
 
-Browser player for Pokémon Gold using EmulatorJS, with optional versioned IPS modifications.
+Browser player for Game Boy, Game Boy Color and Game Boy Advance using EmulatorJS, with optional versioned Pokémon Gold IPS modifications.
 
 [Play in your browser](https://kevinbridgman.github.io/johto-gold-player/). Open in Chrome on Android, select your own compatible Gold ROM, choose a modification/version, and tap **Start game**. You can also play unmodified or select a local IPS. No game ROM is distributed; this page reads and patches your ROM in memory without uploading or changing the original file.
+
+## GB, GBC and GBA support
+
+Choose an uncompressed `.gb`, `.gbc` or `.gba` file. The player detects the system and starts Gambatte for GB/GBC or mGBA for GBA. GBA uses the stable legacy WebAssembly core, with no external BIOS required for the supported test flow. GBA games automatically select **No patch (original game)** and disable the Gold-only IPS choices. Switching back restores the previous patch selection. ROM headers/sizes are checked before startup; archives must be extracted first. No ROM is uploaded or bundled.
+
+GBA touch controls include **L and R**, alongside A/B, the D-pad, Start and Select. Existing normal speed, Space/mobile/controller boost, touch visibility and numbered screenshot slots remain. GBA previews use a 3:2 aspect ratio; GB/GBC retain 10:9.
+
+Cartridge saves for GBA and other unmodified GB/GBC games are keyed by system and ROM-content SHA-1, so different games cannot overwrite one another; renaming an identical ROM preserves its identity. Existing Pokémon Gold cartridge saves keep the exact **Johto Gold Mod** identity, and all GB/GBC numbered-state keys retain the old `gb-gambatte-legacy:<patched-ROM-SHA1>` format. GBA numbered states use `gba-mgba-legacy:<ROM-SHA1>`. The visible-page save timer remains unchanged: no save on page hiding or leaving. Download backups before clearing browser storage.
+
+Validation: all player regression tests plus ROM validation/save-identity cases pass. The real mGBA core boots a self-authored ARM test ROM in Chromium, exposes L/R touch controls, processes both shoulder inputs, persists a cartridge byte across reload, and supports the existing boost toggle. This browser flow runs before player deployment using `tests/browser_handheld.cjs`; it uses only a generated original test program and the official EmulatorJS CDN. No commercial test ROM is distributed. Compatibility with every GBA title and physical phone/controller remains unverified.
 
 ## Available modifications
 

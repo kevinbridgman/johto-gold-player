@@ -1,0 +1,40 @@
+name: Test handheld player in Chromium
+on:
+  workflow_call:
+  push:
+    branches: [gba-support-validation]
+    paths:
+      - 'index.html'
+      - 'rom-system.js'
+      - 'tests/test_player*.cjs'
+      - 'tests/browser_handheld.cjs'
+      - 'tests/fixtures/make_gba_demo.py'
+      - '.github/workflows/player-browser.yml'
+permissions:
+  contents: read
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Test player logic and save compatibility
+        run: node --test tests/test_player*.cjs
+      - name: Install browser test driver
+        run: npm install --no-save --ignore-scripts playwright@1.56.1
+      - name: Generate original GBA test program
+        run: python3 tests/fixtures/make_gba_demo.py /tmp/player-selftest.gba
+      - name: Test real GBA emulation, shoulder controls and saved games
+        run: node tests/browser_handheld.cjs
+      - name: Upload browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: handheld-browser-evidence
+          path: |
+            /tmp/handheld-evidence/*.png
+            /tmp/handheld-evidence/*.json
+          if-no-files-found: ignore
