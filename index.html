@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Johto Gold Mod — Local Browser Player</title>
+<title>Johto Gold Player — GB, GBC &amp; GBA</title>
 <style>
 :root{color-scheme:dark;font-family:system-ui,-apple-system,sans-serif}
 body{margin:0;background:#14221e;color:#f4f4e9}
@@ -24,7 +24,7 @@ a{color:#e7ca71}
 .state-slot.selected{border-color:#e7ca71}
 .state-slot .slot-select{margin:0;padding:0;background:transparent;color:#f4f4e9;border-radius:4px;text-align:left}
 .slot-select strong{display:block;margin-bottom:8px;font-size:.85rem}
-.state-preview{display:grid;place-items:center;aspect-ratio:10/9;background:#000;color:#fff;text-align:center;font-size:.8rem;overflow:hidden}
+.state-preview{display:grid;place-items:center;aspect-ratio:var(--state-aspect,10/9);background:#000;color:#fff;text-align:center;font-size:.8rem;overflow:hidden}
 .state-preview img{width:100%;height:100%;object-fit:contain;image-rendering:pixelated}
 .state-slot>small{display:block;min-height:2.5em;font-size:.7rem;margin-top:7px}
 .slot-actions{display:flex;gap:6px}.slot-actions button{margin-top:6px;padding:8px 4px}
@@ -40,13 +40,14 @@ a{color:#e7ca71}
 </head>
 <body><main>
 <h1>Johto Gold Mod</h1>
-<p>Run your own Pokémon Gold ROM locally in your browser. Optionally apply the project's IPS modification before starting the emulator. Your ROM is not uploaded by this page.</p>
+<p>Play your own Game Boy, Game Boy Color, or Game Boy Advance ROM locally. Pokémon Gold can also use the project’s optional IPS modifications. Your ROM is not uploaded by this page.</p>
 <section id="setup" class="panel">
-<label for="rom">Your Pokémon Gold ROM (.gbc)</label>
-<input type="file" id="rom" accept=".gb,.gbc,application/octet-stream">
-<label for="patch-select">Game modification</label>
+<label for="rom">Your ROM (.gb, .gbc, or .gba)</label>
+<input type="file" id="rom" accept=".gb,.gbc,.gba,application/octet-stream">
+<p id="rom-system" role="status">GB, GBC, and GBA supported. The system is detected automatically.</p>
+<label for="patch-select">Pokémon Gold modification</label>
 <select id="patch-select">
-<option value="none">Original Pokémon Gold (no patch)</option>
+<option value="none">No patch (original game)</option>
 <option value="loading" disabled>Checking GitHub for patches…</option>
 <option value="manual">Choose a local IPS file…</option>
 </select>
@@ -67,7 +68,7 @@ a{color:#e7ca71}
 <option value="on">On</option>
 <option value="off">Off</option>
 </select>
-<p id="touch-controls-help"><small>Show the on-screen D-pad, A, B, Start, and Select buttons.</small></p>
+<p id="touch-controls-help"><small>Show the on-screen D-pad, A, B, Start, and Select buttons, plus L and R for GBA games.</small></p>
 <label for="normal-speed">Normal gameplay speed</label>
 <select id="normal-speed" aria-describedby="normal-speed-help">
 <option value="1">1× (default)</option>
@@ -101,7 +102,7 @@ a{color:#e7ca71}
 <button id="controller-boost-clear" type="button" disabled>Clear controller assignment</button>
 <p><small>Connect your controller, press a button to make it visible to the browser, then select Assign and press your paddle. Hold it for the selected Speed boost target; release to return to normal gameplay speed. If the paddle is not detected, use the 8BitDo app to map it to an unused button such as a stick click, then assign it here. A mirrored paddle and its original button share this assignment.</small></p>
 <h2>Save states</h2>
-<p id="state-slots-message" role="status">Start a game to view its numbered save states. These are separate from Pokémon's normal SAVE.</p>
+<p id="state-slots-message" role="status">Start a game to view its numbered save states. These are separate from the game’s normal save.</p>
 <div id="state-slots" class="state-grid" aria-label="Numbered save-state slots"></div>
 </details>
 <p id="status" role="status" aria-live="polite">Choose a ROM to begin.</p>
@@ -113,8 +114,9 @@ a{color:#e7ca71}
 <p><small>Keyboard: click the game, then hold <kbd>Space</kbd> for the speed selected in Player settings. Release to return to normal.</small></p>
 <button id="reload" type="button">Choose another ROM / restart</button>
 </section>
-<p><small>Emulation is provided by <a href="https://emulatorjs.org/" target="_blank" rel="noreferrer">EmulatorJS</a>, loaded from its official CDN. The emulator is not bundled here and initially requires internet. Use Pokémon’s normal SAVE menu. Cartridge saves are copied to browser storage every second while the page is visible. Reopen with the same ROM and patch in this browser. Clearing site data or using private browsing can remove saves; keep downloaded backups. The ROM is read locally, and never sent to our server by this page.</small></p>
+<p><small>Emulation is provided by <a href="https://emulatorjs.org/" target="_blank" rel="noreferrer">EmulatorJS</a>, loaded from its official CDN. The emulator is not bundled here and initially requires internet. Use the game’s normal save menu. Cartridge saves are copied to browser storage every second while the page is visible. Reopen with the same ROM and patch in this browser. Clearing site data or using private browsing can remove saves; keep downloaded backups. The ROM is read locally, and never sent to our server by this page.</small></p>
 </main>
+<script src="./rom-system.js"></script>
 <script src="./save-slots.js"></script>
 <script src="./save-slots-ui.js"></script>
 <script src="./gamepad-boost.js"></script>
@@ -127,6 +129,9 @@ const patchSelect=document.querySelector("#patch-select");
 const patchDescription=document.querySelector("#patch-description");
 const manualPatch=document.querySelector("#manual-patch");
 let publishedPatches=[];
+let selectedRomProfile=null;
+let romSelectionVersion=0;
+let patchSelectionBeforeGBA=null;
 const localDescriptions={
  none:"Play the original game without modifications.",
  manual:"Apply an IPS file from your phone. Use a patch made for your exact ROM revision."
@@ -144,6 +149,34 @@ function displayPatch(){
  patchDescription.append(title,desc,note);
 }
 patchSelect.addEventListener("change",displayPatch);
+function applyRomSelection(){
+ const gba=selectedRomProfile?.system==="gba";
+ for(const option of patchSelect.options)option.disabled=gba&&option.value!=="none";
+ if(gba){
+  if(patchSelectionBeforeGBA===null)patchSelectionBeforeGBA=patchSelect.value;
+  patchSelect.value="none";
+ }else if(patchSelectionBeforeGBA!==null){
+  if([...patchSelect.options].some(option=>option.value===patchSelectionBeforeGBA))patchSelect.value=patchSelectionBeforeGBA;
+  patchSelectionBeforeGBA=null;
+ }
+ displayPatch();
+ if(gba)patchDescription.textContent="Play this GBA game without a patch. The listed modifications are for Pokémon Gold only.";
+}
+romInput.addEventListener("change",async()=>{
+ const version=++romSelectionVersion,file=romInput.files[0];
+ if(!file){selectedRomProfile=null;applyRomSelection();return;}
+ try{
+  const header=await file.slice(0,0x150).arrayBuffer();
+  if(version!==romSelectionVersion)return;
+  selectedRomProfile=HandheldROM.inspectRom(header,file.name,file.size);
+  document.querySelector("#rom-system").textContent="Detected: "+selectedRomProfile.label+(selectedRomProfile.system==="gba"?" · L and R shoulder controls available.":"");
+  applyRomSelection();
+ }catch(error){
+  if(version!==romSelectionVersion)return;
+  selectedRomProfile=null;applyRomSelection();
+  document.querySelector("#rom-system").textContent=error.message;
+ }
+});
 async function refreshPatches(){
  try{
   const response=await fetch("./patches/catalog.json",{cache:"no-store"});
@@ -156,17 +189,18 @@ async function refreshPatches(){
   if(publishedPatches.length){
    for(const p of publishedPatches)add(p.id,p.name+" (v"+p.version+")");
   }
-  add("none","Original Pokémon Gold (no patch)");
+  add("none","No patch (original game)");
   add("manual","Choose a local IPS file…");
   patchSelect.value=publishedPatches.length?publishedPatches[0].id:"none";
-  displayPatch();
+  applyRomSelection();
  }catch(error){
   patchSelect.replaceChildren();
-  for(const [value,label] of [["none","Original Pokémon Gold (no patch)"],["manual","Choose a local IPS file…"]]){
+  for(const [value,label] of [["none","No patch (original game)"],["manual","Choose a local IPS file…"]]){
    const option=document.createElement("option");option.value=value;option.textContent=label;patchSelect.append(option);
   }
   patchSelect.value="none";
-  patchDescription.textContent="Published patches aren't available yet. You can play unmodified or choose a local IPS. ("+error.message+")";
+  applyRomSelection();
+  if(selectedRomProfile?.system!=="gba")patchDescription.textContent="Published patches aren't available yet. You can play unmodified or choose a local IPS. ("+error.message+")";
  }
 }
 refreshPatches();
@@ -266,7 +300,7 @@ function sampleSpaceSpeed(){
  if(!speedIsActive()||!manager)return;
  const now=performance.now(),frame=manager.getFrameNum();
  if(speedSample){
-  // GB/GBC advances at 59.7275 emulated video frames per real second.
+  // GB/GBC and GBA both advance at approximately 59.7275 video frames per second.
   const elapsed=now-speedSample.time;
   const frames=frame-speedSample.frame;
   if(elapsed>0&&frames>=0){
@@ -572,12 +606,15 @@ initializeControllerBoost();
 start.addEventListener("click",async()=>{
  start.disabled=true;
  try{
-  if(!romInput.files.length)throw Error("Choose your own legally obtained Pokémon Gold ROM.");
-  const rom=await romInput.files[0].arrayBuffer();
-  if(rom.byteLength<0x150 || rom.byteLength%0x4000!==0)throw Error("Invalid ROM size: select a .gbc file, not a ZIP.");
+  if(!romInput.files.length)throw Error("Choose your own GB, GBC, or GBA ROM.");
+  const file=romInput.files[0],rom=await file.arrayBuffer();
+  const profile=HandheldROM.inspectRom(rom,file.name);
+  selectedRomProfile=profile;
+  applyRomSelection();
   const signature=await sha1(rom);
   let bytes=new Uint8Array(rom);
   const choice=patchSelect.value;
+  if(profile.system==="gba"&&choice!=="none")throw Error("Pokémon Gold patches cannot be used with a GBA game. Select No patch (original game).");
   if(choice==="manual"){
     if(!ipsInput.files.length)throw Error("Choose a local IPS file.");
     if(signature!==ROM_SHA1)throw Error("This ROM doesn't match the reference Gold ROM. SHA-1: "+signature+". No patch applied.");
@@ -587,7 +624,7 @@ start.addEventListener("click",async()=>{
     const selected=publishedPatches.find(p=>p.id===choice);
     if(!selected)throw Error("Selected patch is unavailable.");
     if(signature.toLowerCase()!==selected.baseSha1.toLowerCase()){
-      throw Error("This patch needs a different original ROM revision. Your ROM SHA-1: "+signature+"; required: "+selected.baseSha1+". You can still choose 'Original Pokémon Gold' to play without a patch.");
+      throw Error("This patch needs a different original ROM revision. Your ROM SHA-1: "+signature+"; required: "+selected.baseSha1+". You can still choose 'No patch (original game)' to play without a patch.");
     }
     status.textContent="Downloading "+selected.name+" from GitHub Pages…";
     const patchUrl=new URL(selected.file,location.href);
@@ -600,20 +637,22 @@ start.addEventListener("click",async()=>{
     bytes=ipsPatch(rom,binary);
     status.textContent="Applied "+selected.name+". Starting emulator…";
   }else{status.textContent="Starting unmodified ROM in emulator…";}
-  const stateGameKey="gb-gambatte-legacy:"+await sha1(bytes);
+  const identity=HandheldROM.gameIdentity(profile,signature,await sha1(bytes),ROM_SHA1);
+  const stateGameKey=identity.stateKey;
+  document.querySelector("#state-slots").style.setProperty("--state-aspect",profile.aspectRatio);
   const url=URL.createObjectURL(new Blob([bytes],{type:"application/octet-stream"}));
   window.EJS_player="#game";
-  window.EJS_core="gb";
+  window.EJS_core=profile.core;
   window.EJS_gameUrl=url;
   window.EJS_pathtodata="https://cdn.emulatorjs.org/stable/data/";
-  window.EJS_gameName="Johto Gold Mod";
+  window.EJS_gameName=identity.gameName;
   window.EJS_color="#2b8a5e";
   window.EJS_startOnLoaded=true;
   window.EJS_forceLegacyCores=true;
   window.EJS_disableAutoUnload=true;
   window.EJS_defaultOptions={"virtual-gamepad":wantTouchControls()?"enabled":"disabled"};
   window.EJS_hideSettings=["fastForward","slowMotion","ff-ratio","sm-ratio","virtual-gamepad"];
-  window.EJS_ready=()=>{applyTouchControls();status.textContent="Emulator loaded. Starting game…";};
+  window.EJS_ready=()=>{applyTouchControls();status.textContent=profile.label+" emulator loaded. Starting game…";};
   window.EJS_onGameStart=()=>{gameStarted=true;initializeSpeedControls();initializeTouchControls();startBatterySavePersistence();void slotGallery.start(stateGameKey,window.EJS_emulator);status.textContent="Game started. If screen stays black, open the site in Chrome instead of the in-app browser.";};
   const loader=document.createElement("script");
   loader.src="https://cdn.emulatorjs.org/stable/data/loader.js";
@@ -629,5 +668,6 @@ document.querySelector("#reload").addEventListener("click",()=>{
  location.reload();
 });
 </script></body></html>
+
 
 
