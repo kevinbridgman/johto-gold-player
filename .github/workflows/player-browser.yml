@@ -32,5 +32,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: handheld-browser-evidence
-          path: /tmp/handheld-evidence
+          path: |
+            /tmp/handheld-evidence/*.png
+            /tmp/handheld-evidence/*.json
           if-no-files-found: ignore

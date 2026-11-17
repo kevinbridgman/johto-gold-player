@@ -2,7 +2,7 @@ const {chromium}=require('playwright');
 const fs=require('node:fs'),path=require('node:path'),http=require('node:http'),assert=require('node:assert/strict');
 const root=path.resolve(__dirname,'..'),evidence='/tmp/handheld-evidence',cache='/tmp/handheld-cdn';fs.mkdirSync(evidence,{recursive:true});
 (async()=>{
- const context=await chromium.launchPersistentContext(evidence+'/profile',{executablePath:process.env.CHROME_BIN||'/usr/bin/google-chrome',headless:true,args:['--no-sandbox','--disable-dev-shm-usage'],viewport:{width:420,height:900},hasTouch:true,isMobile:true});
+ const context=await chromium.launchPersistentContext('/tmp/handheld-profile',{executablePath:process.env.CHROME_BIN||'/usr/bin/google-chrome',headless:true,args:['--no-sandbox','--disable-dev-shm-usage'],viewport:{width:420,height:900},hasTouch:true,isMobile:true});
  const errors=[];
  const page=await context.newPage();
  await page.route('http://127.0.0.1:8766/**',async route=>{
@@ -33,7 +33,7 @@ const root=path.resolve(__dirname,'..'),evidence='/tmp/handheld-evidence',cache=
  await page.waitForTimeout(2500);
  const initial=await page.evaluate(()=>({core:EJS_core,name:EJS_gameName,actualCore:EJS_emulator.getCore(),savePath:EJS_emulator.gameManager.getSaveFilePath(),touch:document.querySelector('#game').dataset.touchControls,buttons:[...document.querySelectorAll('.ejs_virtualGamepad_button')].map(x=>x.textContent)}));
  console.log('GBA started',JSON.stringify(initial));assert.equal(initial.core,'gba');assert.equal(initial.actualCore,'mgba');assert.equal(initial.touch,'on');
- const controls=await page.locator('#game .ejs_virtualGamepad_parent').allTextContents();assert.match(controls.join(' '),/\bL\b/);assert.match(controls.join(' '),/\bR\b/);
+ assert(initial.buttons.includes('L'));assert(initial.buttons.includes('R'));
  await page.screenshot({path:evidence+'/gba-started.png'});
  await page.evaluate(()=>EJS_emulator.gameManager.simulateInput(0,10,1));await page.waitForTimeout(180);
  await page.evaluate(()=>EJS_emulator.gameManager.simulateInput(0,10,0));await page.waitForTimeout(1000);
