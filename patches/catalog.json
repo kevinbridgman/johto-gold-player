@@ -122,6 +122,19 @@
       "notes": "Experimental. Rival dialogue and long-term save compatibility have not yet been fully verified."
     },
     {
+      "id": "ffta-ap-boost-v0.2.1",
+      "name": "FFTA \u2014 AP Boost + Ivalice Quick Start",
+      "version": "0.2.1",
+      "system": "gba",
+      "description": "Fixes AP Boost after clan victories, which v0.2.0 missed. An ordinary 50-AP clan win now gives 500 AP at x10. Includes the AP Options menu and Ivalice intro skip.",
+      "notes": "Continue your normal save from v0.1.0 or v0.2.0; the AP setting and save identity are retained. Start \u2192 System \u2192 Options \u2192 AP Boost; B then Yes applies changes. All seven multipliers, mission and clan bonus rewards, mastery caps and save/reload checks pass. Numbered states remain version-specific. No full live battle/campaign playthrough is claimed.",
+      "file": "patches/ffta-ap-boost-v0.2.1.ips",
+      "sha256": "246518bad51e405367373459828e4b19e5eea135036aef1967cded3f8705ae67",
+      "baseSha1": "4ac05441f4de70a4ec3dd932116346c61b8783d9",
+      "modifiedSha1": "dbd84c6ba4937df457ec3809832889eb0365cf6d",
+      "saveIdentitySha1": "c64a709739e5b8b47d8a4ef653df17b1610c1f84"
+    },
+    {
       "id": "ffta-ap-boost-v0.2.0",
       "name": "FFTA \u2014 AP Boost + Ivalice Quick Start",
       "version": "0.2.0",
