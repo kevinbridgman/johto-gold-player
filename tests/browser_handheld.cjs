@@ -11,6 +11,8 @@ const root=path.resolve(__dirname,'..'),evidence='/tmp/handheld-evidence',cache=
  const original=fs.readFileSync('/tmp/player-selftest.gba');
  const patch=Buffer.from([80,65,84,67,72,0,6,0,0,1,42,69,79,70]);
  const modified=Buffer.from(original);modified[0x600]=42;
+ const patch2=Buffer.from(patch);patch2[10]=43;
+ const modified2=Buffer.from(modified);modified2[0x600]=43;
  const digest=(algorithm,data)=>crypto.createHash(algorithm).update(data).digest('hex');
  const catalog=JSON.parse(fs.readFileSync(path.join(root,'patches/catalog.json'),'utf8'));
  catalog.patches.push({id:'selftest-patch',name:'Original GBA test patch',version:'1.0',system:'gba',
@@ -18,6 +20,7 @@ const root=path.resolve(__dirname,'..'),evidence='/tmp/handheld-evidence',cache=
  await page.route('http://127.0.0.1:8766/**',async route=>{
   const url=new URL(route.request().url());
   if(url.pathname==='/patches/catalog.json'){await route.fulfill({contentType:'application/json',body:JSON.stringify(catalog)});return;}
+  if(url.pathname==='/patches/handheld-test2.ips'){await route.fulfill({body:patch2});return;}
   if(url.pathname==='/patches/handheld-test.ips'){await route.fulfill({body:patch});return;}
   const p=path.join(root,url.pathname==='/'?'index.html':url.pathname);
   if(!fs.existsSync(p)||fs.statSync(p).isDirectory()){await route.fulfill({status:404,body:''});return;}
@@ -53,7 +56,14 @@ const root=path.resolve(__dirname,'..'),evidence='/tmp/handheld-evidence',cache=
  const save=await page.evaluate(async()=>{await flushBatterySave(true);return {bytes:[...EJS_emulator.gameManager.getSaveFile(false).slice(0,8)],status:document.querySelector('#save-status').textContent};});
  console.log('Saved',JSON.stringify(save));
  assert.equal(save.bytes[0],0x4c,'L must write the expected SRAM byte');
+ // Publish a compatible second revision and prove the prior battery save
+ // is discovered automatically even though the patched ROM hash changes.
+ catalog.patches.unshift({id:'selftest-patch2',name:'Original GBA test patch 2',version:'2.0',system:'gba',
+  file:'patches/handheld-test2.ips',baseSha1:digest('sha1',original),sha256:digest('sha256',patch2),
+  modifiedSha1:digest('sha1',modified2),saveIdentitySha1:digest('sha1',modified)});
  await page.reload();await page.setInputFiles('#rom','/tmp/player-selftest.gba');await page.waitForFunction(()=>document.querySelector('#rom-system').textContent.includes('Advance'));await page.click('#start');await page.waitForFunction(()=>window.EJS_emulator?.started,{timeout:120000});await page.waitForTimeout(1500);
+ assert.equal(await page.inputValue('#patch-select'),'selftest-patch2');
+ assert.equal(await page.evaluate(()=>EJS_gameName),initial.name);
  const restored=await page.evaluate(()=>[...EJS_emulator.gameManager.getSaveFile(false).slice(0,8)]);
  assert.equal(restored[0],0x4c,'GBA save must restore on reload');
  await page.screenshot({path:evidence+'/gba-restored.png'});

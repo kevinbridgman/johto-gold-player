@@ -636,7 +636,12 @@ start.addEventListener("click",async()=>{
     if(selected.modifiedSha1&&(await sha1(bytes))!==selected.modifiedSha1.toLowerCase())throw Error("Patched ROM checksum mismatch. Please reload the page.");
     status.textContent="Applied "+selected.name+". Starting emulator…";
   }else{status.textContent="Starting unmodified ROM in emulator…";}
-  const identity=HandheldROM.gameIdentity(profile,signature,await sha1(bytes),ROM_SHA1);
+  const activeSignature=await sha1(bytes);
+  // Explicitly compatible releases can retain their prior cartridge-save
+  // directory. Numbered states still use the exact current ROM hash.
+  const saveRelease=publishedPatches.find(p=>p.system===profile.system&&p.modifiedSha1?.toLowerCase()===activeSignature);
+  const saveSignature=saveRelease?.saveIdentitySha1||activeSignature;
+  const identity=HandheldROM.gameIdentity(profile,signature,activeSignature,ROM_SHA1,saveSignature);
   const stateGameKey=identity.stateKey;
   document.querySelector("#state-slots").style.setProperty("--state-aspect",profile.aspectRatio);
   const url=URL.createObjectURL(new Blob([bytes],{type:"application/octet-stream"}));

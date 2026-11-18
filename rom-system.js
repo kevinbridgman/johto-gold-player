@@ -28,10 +28,10 @@
   return patches.filter(p=>p.baseSha1.toLowerCase()===signature&&
    (!profile||!p.system||p.system===profile.system));
  }
- function gameIdentity(profile,sourceSha,activeSha,goldSha){
+ function gameIdentity(profile,sourceSha,activeSha,goldSha,saveSha=activeSha){
   // Retain Gold's existing cartridge-save directory across all published patches.
   const gameName=profile.system==='gb'&&sourceSha.toLowerCase()===goldSha.toLowerCase()
-   ?'Johto Gold Mod':'Handheld-'+profile.system+'-'+activeSha.toLowerCase();
+   ?'Johto Gold Mod':'Handheld-'+profile.system+'-'+saveSha.toLowerCase();
   return {gameName,stateKey:profile.statePrefix+activeSha.toLowerCase()};
  }
  return {inspectRom,gameIdentity,compatiblePatches};

@@ -45,3 +45,10 @@ test('published patches match exact source and system; legacy Gold metadata is r
  const active='c64a709739e5b8b47d8a4ef653df17b1610c1f84',profile=inspectRom(gba(),'game.gba');
  assert.deepEqual(gameIdentity(profile,ffta,active,gold),gameIdentity(profile,active,active,gold));
 });
+
+test('compatible FFTA upgrades retain old cartridge saves and isolate numbered states',()=>{
+ const profile=inspectRom(gba(),'game.gba'),source='4ac05441f4de70a4ec3dd932116346c61b8783d9';
+ const old=gameIdentity(profile,source,a,gold),upgrade=gameIdentity(profile,source,b,gold,a);
+ assert.equal(upgrade.gameName,old.gameName);assert.notEqual(upgrade.stateKey,old.stateKey);
+ assert.deepEqual(gameIdentity(profile,b,b,gold,a),upgrade);
+});

@@ -122,6 +122,19 @@
       "notes": "Experimental. Rival dialogue and long-term save compatibility have not yet been fully verified."
     },
     {
+      "id": "ffta-ap-boost-v0.2.0",
+      "name": "FFTA \u2014 AP Boost + Ivalice Quick Start",
+      "version": "0.2.0",
+      "system": "gba",
+      "description": "Adds AP Boost to the in-game System \u2192 Options menu. Press A to cycle x1, x2, x3, x4, x5, x8 and x10. Default x1. Includes the Ivalice intro skip.",
+      "notes": "Start \u2192 System \u2192 Options \u2192 AP Boost; B then Yes applies changes. Use the normal game save to retain the setting. Existing v0.1.0 cartridge saves remain accessible automatically; use Continue. Boosts mission AP including rank/dispatch bonuses, with safe mastery caps. EXP, JP, gil and item rewards stay normal. Numbered states remain version-specific. Native menu/save and CPU reward tests passed; complete battles/campaign unverified.",
+      "file": "patches/ffta-ap-boost-v0.2.0.ips",
+      "sha256": "42554cb6cd14c2da6813798a9dcf7b81898c3e3ef40ec852f034ba81418fe696",
+      "baseSha1": "4ac05441f4de70a4ec3dd932116346c61b8783d9",
+      "modifiedSha1": "7c54d03d7f519290485c5252d838b2e026bff93f",
+      "saveIdentitySha1": "c64a709739e5b8b47d8a4ef653df17b1610c1f84"
+    },
+    {
       "id": "ffta-quick-start-v0.1.0",
       "name": "FFTA \u2014 Ivalice Quick Start",
       "version": "0.1.0",
