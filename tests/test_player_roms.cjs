@@ -1,5 +1,5 @@
 const {test}=require('node:test'),assert=require('node:assert/strict');
-const {inspectRom,gameIdentity}=require('../rom-system.js');
+const {inspectRom,gameIdentity,compatiblePatches}=require('../rom-system.js');
 function gba(size=32768){
  const bytes=new Uint8Array(size);bytes[0xb2]=0x96;bytes[0xbd]=(-0x96-0x19)&255;return bytes;
 }
@@ -32,4 +32,16 @@ test('isolates GBA saves/states per ROM, from GB and from Gold, without using fi
  assert.notEqual(one.gameName,other.gameName);assert.notEqual(one.stateKey,other.stateKey);
  assert.notEqual(one.gameName,'Johto Gold Mod');assert.equal(one.stateKey,'gba-mgba-legacy:'+a);
  assert.deepEqual(gameIdentity(inspectRom(gba(),'renamed.GBA'),a,a,gold),one);
+});
+
+test('published patches match exact source and system; legacy Gold metadata is retained',()=>{
+ const ffta='4ac05441f4de70a4ec3dd932116346c61b8783d9';
+ const releases=[{id:'gold',baseSha1:gold},{id:'ffta',baseSha1:ffta,system:'gba'},
+  {id:'wrong-system',baseSha1:ffta,system:'gb'}];
+ assert.deepEqual(compatiblePatches(releases,null,null,gold).map(p=>p.id),['gold']);
+ assert.deepEqual(compatiblePatches(releases,{system:'gb'},gold,gold).map(p=>p.id),['gold']);
+ assert.deepEqual(compatiblePatches(releases,{system:'gba'},ffta.toUpperCase(),gold).map(p=>p.id),['ffta']);
+ assert.deepEqual(compatiblePatches(releases,{system:'gba'},a,gold),[]);
+ const active='c64a709739e5b8b47d8a4ef653df17b1610c1f84',profile=inspectRom(gba(),'game.gba');
+ assert.deepEqual(gameIdentity(profile,ffta,active,gold),gameIdentity(profile,active,active,gold));
 });

@@ -45,7 +45,7 @@ a{color:#e7ca71}
 <label for="rom">Your ROM (.gb, .gbc, or .gba)</label>
 <input type="file" id="rom" accept=".gb,.gbc,.gba,application/octet-stream">
 <p id="rom-system" role="status">GB, GBC, and GBA supported. The system is detected automatically.</p>
-<label for="patch-select">Pokémon Gold modification</label>
+<label for="patch-select">Game modification</label>
 <select id="patch-select">
 <option value="none">No patch (original game)</option>
 <option value="loading" disabled>Checking GitHub for patches…</option>
@@ -131,7 +131,9 @@ const manualPatch=document.querySelector("#manual-patch");
 let publishedPatches=[];
 let selectedRomProfile=null;
 let romSelectionVersion=0;
-let patchSelectionBeforeGBA=null;
+let selectedRomSha1=null;
+let renderedRomKey=null;
+const patchChoices=new Map();
 const localDescriptions={
  none:"Play the original game without modifications.",
  manual:"Apply an IPS file from your phone. Use a patch made for your exact ROM revision."
@@ -150,30 +152,37 @@ function displayPatch(){
 }
 patchSelect.addEventListener("change",displayPatch);
 function applyRomSelection(){
- const gba=selectedRomProfile?.system==="gba";
- for(const option of patchSelect.options)option.disabled=gba&&option.value!=="none";
- if(gba){
-  if(patchSelectionBeforeGBA===null)patchSelectionBeforeGBA=patchSelect.value;
-  patchSelect.value="none";
- }else if(patchSelectionBeforeGBA!==null){
-  if([...patchSelect.options].some(option=>option.value===patchSelectionBeforeGBA))patchSelect.value=patchSelectionBeforeGBA;
-  patchSelectionBeforeGBA=null;
- }
+ if(renderedRomKey!==null)patchChoices.set(renderedRomKey,patchSelect.value);
+ const key=selectedRomSha1||"no-rom";
+ const compatible=HandheldROM.compatiblePatches(publishedPatches,selectedRomProfile,selectedRomSha1,ROM_SHA1);
+ patchSelect.replaceChildren();
+ const add=(value,label,disabled=false)=>{
+  const option=document.createElement("option");option.value=value;option.textContent=label;option.disabled=disabled;patchSelect.append(option);
+ };
+ for(const p of compatible)add(p.id,p.name+" (v"+p.version+")");
+ add("none","No patch (original game)");
+ add("manual","Choose a local IPS file…",selectedRomProfile?.system==="gba");
+ const remembered=patchChoices.get(key);
+ patchSelect.value=[...patchSelect.options].some(o=>o.value===remembered&&!o.disabled)
+  ?remembered:(compatible[0]?.id||"none");
+ renderedRomKey=key;
  displayPatch();
- if(gba)patchDescription.textContent="Play this GBA game without a patch. The listed modifications are for Pokémon Gold only.";
 }
 romInput.addEventListener("change",async()=>{
  const version=++romSelectionVersion,file=romInput.files[0];
- if(!file){selectedRomProfile=null;applyRomSelection();return;}
+ if(!file){selectedRomProfile=null;selectedRomSha1=null;applyRomSelection();return;}
  try{
   const header=await file.slice(0,0x150).arrayBuffer();
   if(version!==romSelectionVersion)return;
-  selectedRomProfile=HandheldROM.inspectRom(header,file.name,file.size);
+  const profile=HandheldROM.inspectRom(header,file.name,file.size);
+  const signature=await sha1(await file.arrayBuffer());
+  if(version!==romSelectionVersion)return;
+  selectedRomProfile=profile;selectedRomSha1=signature;
   document.querySelector("#rom-system").textContent="Detected: "+selectedRomProfile.label+(selectedRomProfile.system==="gba"?" · L and R shoulder controls available.":"");
   applyRomSelection();
  }catch(error){
   if(version!==romSelectionVersion)return;
-  selectedRomProfile=null;applyRomSelection();
+  selectedRomProfile=null;selectedRomSha1=null;applyRomSelection();
   document.querySelector("#rom-system").textContent=error.message;
  }
 });
@@ -184,23 +193,11 @@ async function refreshPatches(){
   const catalog=await response.json();
   if(catalog.schemaVersion!==1||!Array.isArray(catalog.patches))throw Error("Unknown catalog format");
   publishedPatches=catalog.patches.filter(p=>p.id&&p.file&&p.name&&p.baseSha1&&p.sha256);
-  patchSelect.replaceChildren();
-  const add=(value,label)=>{const option=document.createElement("option");option.value=value;option.textContent=label;patchSelect.append(option);};
-  if(publishedPatches.length){
-   for(const p of publishedPatches)add(p.id,p.name+" (v"+p.version+")");
-  }
-  add("none","No patch (original game)");
-  add("manual","Choose a local IPS file…");
-  patchSelect.value=publishedPatches.length?publishedPatches[0].id:"none";
   applyRomSelection();
  }catch(error){
-  patchSelect.replaceChildren();
-  for(const [value,label] of [["none","No patch (original game)"],["manual","Choose a local IPS file…"]]){
-   const option=document.createElement("option");option.value=value;option.textContent=label;patchSelect.append(option);
-  }
-  patchSelect.value="none";
+  publishedPatches=[];
   applyRomSelection();
-  if(selectedRomProfile?.system!=="gba")patchDescription.textContent="Published patches aren't available yet. You can play unmodified or choose a local IPS. ("+error.message+")";
+  patchDescription.textContent="Published patches aren't available yet. You can play unmodified or choose a local IPS. ("+error.message+")";
  }
 }
 refreshPatches();
@@ -609,12 +606,12 @@ start.addEventListener("click",async()=>{
   if(!romInput.files.length)throw Error("Choose your own GB, GBC, or GBA ROM.");
   const file=romInput.files[0],rom=await file.arrayBuffer();
   const profile=HandheldROM.inspectRom(rom,file.name);
-  selectedRomProfile=profile;
-  applyRomSelection();
   const signature=await sha1(rom);
+  selectedRomProfile=profile;selectedRomSha1=signature;
+  applyRomSelection();
   let bytes=new Uint8Array(rom);
   const choice=patchSelect.value;
-  if(profile.system==="gba"&&choice!=="none")throw Error("Pokémon Gold patches cannot be used with a GBA game. Select No patch (original game).");
+
   if(choice==="manual"){
     if(!ipsInput.files.length)throw Error("Choose a local IPS file.");
     if(signature!==ROM_SHA1)throw Error("This ROM doesn't match the reference Gold ROM. SHA-1: "+signature+". No patch applied.");
@@ -623,6 +620,7 @@ start.addEventListener("click",async()=>{
   }else if(choice!=="none"){
     const selected=publishedPatches.find(p=>p.id===choice);
     if(!selected)throw Error("Selected patch is unavailable.");
+    if(selected.system&&selected.system!==profile.system)throw Error("This patch is for a different game system.");
     if(signature.toLowerCase()!==selected.baseSha1.toLowerCase()){
       throw Error("This patch needs a different original ROM revision. Your ROM SHA-1: "+signature+"; required: "+selected.baseSha1+". You can still choose 'No patch (original game)' to play without a patch.");
     }
@@ -635,6 +633,7 @@ start.addEventListener("click",async()=>{
     const sha=hex(new Uint8Array(await crypto.subtle.digest("SHA-256",binary)));
     if(sha!==selected.sha256.toLowerCase())throw Error("Downloaded IPS checksum mismatch. Please reload the page.");
     bytes=ipsPatch(rom,binary);
+    if(selected.modifiedSha1&&(await sha1(bytes))!==selected.modifiedSha1.toLowerCase())throw Error("Patched ROM checksum mismatch. Please reload the page.");
     status.textContent="Applied "+selected.name+". Starting emulator…";
   }else{status.textContent="Starting unmodified ROM in emulator…";}
   const identity=HandheldROM.gameIdentity(profile,signature,await sha1(bytes),ROM_SHA1);

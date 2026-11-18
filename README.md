@@ -1,12 +1,12 @@
 # Johto Gold Player
 
-Browser player for Game Boy, Game Boy Color and Game Boy Advance using EmulatorJS, with optional versioned Pokémon Gold IPS modifications.
+Browser player for Game Boy, Game Boy Color and Game Boy Advance using EmulatorJS, with optional versioned Pokémon Gold and Final Fantasy Tactics Advance IPS modifications.
 
 [Play in your browser](https://kevinbridgman.github.io/johto-gold-player/). Open in Chrome on Android, select your own compatible Gold ROM, choose a modification/version, and tap **Start game**. You can also play unmodified or select a local IPS. No game ROM is distributed; this page reads and patches your ROM in memory without uploading or changing the original file.
 
 ## GB, GBC and GBA support
 
-Choose an uncompressed `.gb`, `.gbc` or `.gba` file. The player detects the system and starts Gambatte for GB/GBC or mGBA for GBA. GBA uses the stable legacy WebAssembly core, with no external BIOS required for the supported test flow. GBA games automatically select **No patch (original game)** and disable the Gold-only IPS choices. Switching back restores the previous patch selection. ROM headers/sizes are checked before startup; archives must be extracted first. No ROM is uploaded or bundled.
+Choose an uncompressed `.gb`, `.gbc` or `.gba` file. The player detects the system and starts Gambatte for GB/GBC or mGBA for GBA. GBA uses the stable legacy WebAssembly core, with no external BIOS required for the supported test flow. The modification list shows releases matching the selected original ROM SHA-1 and defaults to its newest available patch. Unrecognized or already-patched games default to **No patch (original game)**. Switching games restores the previous choice. Published GBA patches are supported; local IPS selection remains Gold-only. ROM headers/sizes are checked before startup; archives must be extracted first. No ROM is uploaded or bundled.
 
 GBA touch controls include **L and R**, alongside A/B, the D-pad, Start and Select. Existing normal speed, Space/mobile/controller boost, touch visibility and numbered screenshot slots remain. GBA previews use a 3:2 aspect ratio; GB/GBC retain 10:9.
 
@@ -15,6 +15,10 @@ Cartridge saves for GBA and other unmodified GB/GBC games are keyed by system an
 Validation: all player regression tests plus ROM validation/save-identity cases pass. The real mGBA core boots a self-authored ARM test ROM in Chromium, exposes L/R touch controls, processes both shoulder inputs, persists a cartridge byte across reload, and supports the existing boost toggle. This browser flow runs before player deployment using `tests/browser_handheld.cjs`; it uses only a generated original test program and the official EmulatorJS CDN. No commercial test ROM is distributed. Compatibility with every GBA title and physical phone/controller remains unverified.
 
 ## Available modifications
+
+**FFTA — Ivalice Quick Start v0.1.0:** select your original Final Fantasy Tactics Advance (USA) `.gba` (AFXE rev 0), leave this matching patch selected, then tap **Start game**. Choose **New Game**: both naming screens remain, then you begin on Ivalice’s world map. Place Sprohm on an empty node and continue with Herb Picking from the pub. The pre-title movie, real-world prologue and first Ivalice tutorial fight are skipped. The published 267-byte IPS changes 199 ROM bytes; both original-ROM SHA-1 and patch SHA-256 are checked locally. No FFTA ROM is hosted. Prior art: [LeonarthCG/FFTA_Engine_Hacks](https://github.com/LeonarthCG/FFTA_Engine_Hacks), commit `14ad10060ee21474c56272fd94bcc21d5a92264c`.
+
+The source project validated the starting party, town entry, first mission availability, and normal battery save/reload in both patched and original ROMs. Full battle/campaign testing remains incomplete. FFTA saves retain the existing system + resulting-ROM hash identity, so loading the same prepatched file or applying this catalog patch selects the same saves/states.
 
 **Lantern Hollow + Riley's Gym v1.11** adds a **placeholder gym at the north end of the village's central street**, between the free shop and healing lodge. Its original Gold gym exterior has a readable Riley sign and a central entrance. Inside is a simple open gym room with two statues, a gym guide and **Gym Leader Riley**. Riley uses a temporary female Cooltrainer sprite and introduces herself while preparing the gym. Both exit carpet tiles lead back to the forecourt.
 

@@ -120,6 +120,18 @@
       "baseSha1": "d8b8a3600a465308c9953dfa04f0081c05bdcb94",
       "description": "Professor Elm offers Mareep, Houndour, or Larvitar instead of Cyndaquil, Totodile, or Chikorita. Rival battles use their corresponding evolution lines (Ampharos, Houndoom, Tyranitar), with custom move choices. The original world, story, graphics, and music remain intact.",
       "notes": "Experimental. Rival dialogue and long-term save compatibility have not yet been fully verified."
+    },
+    {
+      "id": "ffta-quick-start-v0.1.0",
+      "name": "FFTA \u2014 Ivalice Quick Start",
+      "version": "0.1.0",
+      "system": "gba",
+      "description": "Keep the character and clan naming screens, then start on Ivalice\u2019s world map. Skips the pre-title movie, the school/snowball/bedroom prologue, and the first Ivalice tutorial battle.",
+      "notes": "Choose New Game for the shortcut. Place Sprohm on an empty map node, then continue; Herb Picking is available at the pub. Normal saves resume their existing progress. Starting party, town entry, first mission availability and normal save/reload tested; full campaign unverified. Quick-start prior art: LeonarthCG/FFTA_Engine_Hacks.",
+      "file": "patches/ffta-quick-start-v0.1.0.ips",
+      "sha256": "fb048483544ec3304e0aa26ea26a25063aa7d5805fa3f380ee249a0053973d45",
+      "baseSha1": "4ac05441f4de70a4ec3dd932116346c61b8783d9",
+      "modifiedSha1": "c64a709739e5b8b47d8a4ef653df17b1610c1f84"
     }
   ]
 }

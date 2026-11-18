@@ -23,11 +23,16 @@
   if(size<0x150||size%0x4000!==0)throw Error('Invalid GB/GBC ROM size. Choose an uncompressed .gb or .gbc file.');
   return {system:'gb',core:'gb',label:'Game Boy / Game Boy Color',statePrefix:'gb-gambatte-legacy:',aspectRatio:'10 / 9'};
  }
+ function compatiblePatches(patches,profile,sourceSha,goldSha){
+  const signature=(sourceSha||(!profile?goldSha:'')||'').toLowerCase();
+  return patches.filter(p=>p.baseSha1.toLowerCase()===signature&&
+   (!profile||!p.system||p.system===profile.system));
+ }
  function gameIdentity(profile,sourceSha,activeSha,goldSha){
   // Retain Gold's existing cartridge-save directory across all published patches.
   const gameName=profile.system==='gb'&&sourceSha.toLowerCase()===goldSha.toLowerCase()
    ?'Johto Gold Mod':'Handheld-'+profile.system+'-'+activeSha.toLowerCase();
   return {gameName,stateKey:profile.statePrefix+activeSha.toLowerCase()};
  }
- return {inspectRom,gameIdentity};
+ return {inspectRom,gameIdentity,compatiblePatches};
 });
