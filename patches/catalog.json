@@ -122,6 +122,19 @@
       "notes": "Experimental. Rival dialogue and long-term save compatibility have not yet been fully verified."
     },
     {
+      "id": "ffta-ap-boost-v0.2.2",
+      "name": "FFTA \u2014 AP Boost + Ivalice Quick Start",
+      "version": "0.2.2",
+      "system": "gba",
+      "description": "AP Boost now scales mission, queued dispatch and clan rewards at their shared finalizer, after built-in bonuses. Choose x1, x2, x3, x4, x5, x8 or x10 in System \u2192 Options. Includes Ivalice Quick Start.",
+      "notes": "B then Yes applies AP Boost; normal game Save retains it. Existing compatible normal saves remain accessible; use Continue. Reward penalties still cancel AP, mastery stays capped, and EXP, JP, gil and items keep normal behavior. Numbered states remain ROM-specific. CPU route audit and native menu/save tests passed; full campaign unverified.",
+      "file": "patches/ffta-ap-boost-v0.2.2.ips",
+      "sha256": "aee0ce352b6e9fb1ac55def25ecde4b0acefed54a657d98c9c01ab1c9e11274f",
+      "baseSha1": "4ac05441f4de70a4ec3dd932116346c61b8783d9",
+      "modifiedSha1": "0af20a0097b96fe71b35ccf33365ac304fd2de92",
+      "saveIdentitySha1": "c64a709739e5b8b47d8a4ef653df17b1610c1f84"
+    },
+    {
       "id": "ffta-ap-boost-v0.2.1",
       "name": "FFTA \u2014 AP Boost + Ivalice Quick Start",
       "version": "0.2.1",
